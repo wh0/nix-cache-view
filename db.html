@@ -1,0 +1,15 @@
+<!doctype html>
+<script src="misc.js"></script>
+<script>
+  (async () => {
+    try {
+      const dumpText = await fetchOkText('https://tmpnix-gsdrv.glitch.me/db.txt');
+      const db = dbParse(dumpText);
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(db, null, 2);
+      document.body.appendChild(pre);
+    } catch (e) {
+      console.error(e);
+    }
+  })();
+</script>

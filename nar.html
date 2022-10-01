@@ -1,0 +1,80 @@
+<!doctype html>
+<div id="root"></div>
+<script src="misc.js"></script>
+<script>
+  (async () => {
+    try {
+      const options = new URL(window.location).searchParams;
+      const cacheBase = options.get('cache_base');
+      const hash = options.get('hash');
+      const narinfo = await cacheGetNarinfo(cacheBase, hash);
+      const nar = await cacheGetNar(cacheBase, narinfo);
+      console.log(nar); // %%%
+
+      const renderNode = (node) => {
+        let vNode;
+        switch (node.type) {
+          case 'regular':
+            vNode = document.createElement('p');
+            if (node.executable) {
+              const vExecutable = document.createElement('span');
+              vExecutable.textContent = 'executable';
+              vNode.appendChild(vExecutable);
+              vNode.appendChild(document.createTextNode(' '));
+            }
+            const vPrepare = document.createElement('input');
+            vPrepare.type = 'button';
+            vPrepare.value = 'create object url';
+            vPrepare.onclick = (e) => {
+              vPrepare.disabled = true;
+              const url = URL.createObjectURL(new Blob([node.contents]));
+              vNode.appendChild(document.createTextNode(' '));
+              const vLink = document.createElement('a');
+              vLink.href = url;
+              vLink.textContent = 'contents';
+              vNode.appendChild(vLink);
+            };
+            vNode.appendChild(vPrepare);
+            break;
+          case 'symlink':
+            vNode = document.createElement('p');
+            const vSymlink = document.createElement('span');
+            vSymlink.textContent = 'symlink';
+            vNode.appendChild(vSymlink);
+            vNode.appendChild(document.createTextNode(' '));
+            const vTarget = document.createElement('span');
+            vTarget.textContent = node.target;
+            vNode.appendChild(vTarget);
+            break;
+          case 'directory':
+            vNode = document.createElement('details');
+            let populated = false;
+            vNode.ontoggle = (e) => {
+              if (populated) return;
+              populated = true;
+              vEntries = document.createElement('dl');
+              for (const entry of node.entries) {
+                const vDt = document.createElement('dt');
+                vDt.textContent = entry.name;
+                vEntries.appendChild(vDt);
+                const vDd = document.createElement('dd');
+                vDd.appendChild(renderNode(entry.node));
+                vEntries.appendChild(vDd);
+              }
+              vNode.appendChild(vEntries);
+            };
+            const vSummary = document.createElement('summary');
+            vSummary.textContent = `${node.entries.length} entr(ies)`;
+            vNode.appendChild(vSummary);
+            break;
+          default:
+            throw new Error(`unrecognized type ${node.type}`)
+        }
+        return vNode;
+      };
+      document.getElementById('root').appendChild(renderNode(nar.root));
+    } catch (e) {
+      console.error(e);
+    }
+  })();
+</script>

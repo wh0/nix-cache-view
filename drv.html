@@ -1,0 +1,106 @@
+<!doctype html>
+<table id="outputs" border="1">
+  <thead>
+    <tr>
+      <td>Output name</td>
+      <td>Path</td>
+      <td>Hash algorithm</td>
+      <td>Hash</td>
+    </tr>
+  </thead>
+</table>
+<table id="input_drvs" border="1">
+  <thead>
+    <tr>
+      <td>Input derivation</td>
+      <td>Outputs</td>
+    </tr>
+  </thead>
+</table>
+<table id="input_srcs" border="1">
+  <thead>
+    <tr>
+      <td>Input source</td>
+    </tr>
+  </thead>
+</table>
+<dl>
+  <dt>Platform</dt>
+  <dd id="platform"></dd>
+</dl>
+<dl>
+  <dt>Builder</dt>
+  <dd id="builder"></dd>
+</dl>
+<dl>
+  <dt>Builder arguments</dt>
+  <dd><ol id="builder_args"></ol></dd>
+</dl>
+<table id="env" border="1">
+  <thead>
+    <tr>
+      <td>Environment variable</td>
+      <td>Value</td>
+    </tr>
+  </thead>
+</table>
+<script src="misc.js"></script>
+<script>
+  (async () => {
+    try {
+      const options = new URL(window.location).searchParams;
+      const cacheBase = options.get('cache_base');
+      const hash = options.get('hash');
+      const drvNarinfo = await cacheGetNarinfo(cacheBase, hash);
+      const drvNar = await cacheGetNar(cacheBase, drvNarinfo);
+      const drv = drvParse(new TextDecoder().decode(drvNar.root.contents));
+
+      const [outputs, inputDrvs, inputSrcs, platform, builder, builderArgs, env] = drv;
+      const vOutputs = document.getElementById('outputs');
+      for (const [name, path, narHashAlgorithm, narHash] of outputs) {
+        const row = vOutputs.insertRow(-1);
+        row.insertCell(-1).textContent = name;
+        const pathCell = row.insertCell(-1);
+        const pathLink = document.createElement('a');
+        const cacheBaseBin = 'https://cdn.glitch.me/35f4f809-f949-484d-af9c-269b3b7abc78/'; // %%%
+        const outputHash = /([0-9a-z]+)-[^/]+/.exec(path)[1];
+        pathLink.href = `nar.html?cache_base=${encodeURIComponent(cacheBaseBin)}&hash=${encodeURIComponent(outputHash)}`;
+        pathLink.textContent = path;
+        pathCell.appendChild(pathLink);
+        row.insertCell(-1).textContent = narHashAlgorithm;
+        row.insertCell(-1).textContent = narHash;
+      }
+      const vInputDrvs = document.getElementById('input_drvs');
+      for (const [drvPath, drvOutputs] of inputDrvs) {
+        const row = vInputDrvs.insertRow(-1);
+        const drvCell = row.insertCell(-1);
+        const drvLink = document.createElement('a');
+        const drvHash = /([0-9a-z]+)-[^/]+/.exec(drvPath)[1];
+        drvLink.href = `?cache_base=${encodeURIComponent(cacheBase)}&hash=${encodeURIComponent(drvHash)}`;
+        drvLink.textContent = drvPath;
+        drvCell.appendChild(drvLink);
+        row.insertCell(-1).textContent = drvOutputs.join(', ');
+      }
+      const vInputSrcs = document.getElementById('input_srcs');
+      for (const inputSrc of inputSrcs) {
+        vInputSrcs.insertRow(-1).insertCell(-1).textContent = inputSrc;
+      }
+      document.getElementById('platform').textContent = platform;
+      document.getElementById('builder').textContent = builder;
+      const vBuilderArgs = document.getElementById('builder_args');
+      for (const builderArg of builderArgs) {
+        const item = document.createElement('li');
+        item.textContent = builderArg;
+        vBuilderArgs.appendChild(item);
+      }
+      const vEnv = document.getElementById('env');
+      for (const [name, value] of env) {
+        const row = vEnv.insertRow(-1);
+        row.insertCell(-1).textContent = name;
+        row.insertCell(-1).textContent = value;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  })();
+</script>
