@@ -27,14 +27,18 @@
             vPrepare.value = 'create object url';
             vPrepare.onclick = (e) => {
               vPrepare.disabled = true;
-              const url = URL.createObjectURL(new Blob([node.contents]));
-              vNode.appendChild(document.createTextNode(' '));
-              const vLink = document.createElement('a');
-              vLink.href = url;
-              vLink.textContent = 'contents';
-              vNode.appendChild(vLink);
+              const blob = new Blob([node.contents], {type: 'application/octet-stream'});
+              const url = URL.createObjectURL(blob);
+              vBlob.href = url;
+              vBlob.hidden = false;
             };
             vNode.appendChild(vPrepare);
+            vNode.appendChild(document.createTextNode(' '));
+            const vBlob = document.createElement('a');
+            vBlob.download = name;
+            vBlob.hidden = true;
+            vBlob.textContent = 'contents';
+            vNode.appendChild(vBlob);
             break;
           case 'symlink':
             vNode = document.createElement('p');
