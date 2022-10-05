@@ -11,7 +11,7 @@
       const nar = await cacheGetNar(cacheBase, narinfo);
       console.log(nar); // %%%
 
-      const renderNode = (node) => {
+      const renderNode = (name, node) => {
         let vNode;
         switch (node.type) {
           case 'regular':
@@ -58,7 +58,7 @@
                 vDt.textContent = entry.name;
                 vEntries.appendChild(vDt);
                 const vDd = document.createElement('dd');
-                vDd.appendChild(renderNode(entry.node));
+                vDd.appendChild(renderNode(entry.name, entry.node));
                 vEntries.appendChild(vDd);
               }
               vNode.appendChild(vEntries);
@@ -72,7 +72,16 @@
         }
         return vNode;
       };
-      document.getElementById('root').appendChild(renderNode(nar.root));
+      let rootPath;
+      narinfoVisitFields(narinfo, (k, v) => {
+        switch (k) {
+          case 'StorePath':
+            rootPath = v;
+            break;
+        }
+      });
+      const rootName = pathName(rootPath);
+      document.getElementById('root').appendChild(renderNode(rootName, nar.root));
     } catch (e) {
       console.error(e);
     }
