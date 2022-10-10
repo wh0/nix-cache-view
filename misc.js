@@ -64,6 +64,16 @@ function narinfoVisitFields(narinfo, handler) {
   }
 }
 
+const PATH_PATTERN = /\/([0-9a-z]{32})-([^/]+)/;
+
+function pathHash(path) {
+  return PATH_PATTERN.exec(path)[1];
+}
+
+function pathName(path) {
+  return PATH_PATTERN.exec(path)[2];
+}
+
 function narReadInt(reader) {
   const i = reader.data.getBigInt64(reader.pos, true);
   reader.pos += 8;
