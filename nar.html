@@ -12,10 +12,14 @@
       console.log(nar); // %%%
 
       const renderNode = (name, node) => {
-        let vNode;
+        let vNode, vName;
         switch (node.type) {
           case 'regular':
-            vNode = document.createElement('p');
+            vNode = document.createDocumentFragment();
+            vName = document.createElement('span');
+            vName.textContent = name;
+            vNode.appendChild(vName);
+            vNode.appendChild(document.createTextNode(' '));
             if (node.executable) {
               const vExecutable = document.createElement('span');
               vExecutable.textContent = 'executable';
@@ -41,9 +45,13 @@
             vNode.appendChild(vBlob);
             break;
           case 'symlink':
-            vNode = document.createElement('p');
+            vNode = document.createDocumentFragment();
+            vName = document.createElement('span');
+            vName.textContent = name;
+            vNode.appendChild(vName);
+            vNode.appendChild(document.createTextNode(' '));
             const vSymlink = document.createElement('span');
-            vSymlink.textContent = 'symlink';
+            vSymlink.textContent = '->';
             vNode.appendChild(vSymlink);
             vNode.appendChild(document.createTextNode(' '));
             const vTarget = document.createElement('span');
@@ -56,19 +64,19 @@
             vNode.ontoggle = (e) => {
               if (populated) return;
               populated = true;
-              vEntries = document.createElement('dl');
+              vEntries = document.createElement('ul');
               for (const entry of node.entries) {
-                const vDt = document.createElement('dt');
-                vDt.textContent = entry.name;
-                vEntries.appendChild(vDt);
-                const vDd = document.createElement('dd');
-                vDd.appendChild(renderNode(entry.name, entry.node));
-                vEntries.appendChild(vDd);
+                const vEntry = document.createElement('li');
+                vEntry.appendChild(renderNode(entry.name, entry.node));
+                vEntries.appendChild(vEntry);
               }
               vNode.appendChild(vEntries);
             };
             const vSummary = document.createElement('summary');
-            vSummary.textContent = `${node.entries.length} entr(ies)`;
+            vName = document.createElement('span');
+            vName.textContent = name;
+            vSummary.appendChild(vName);
+            vSummary.appendChild(document.createTextNode(` (${node.entries.length})`));
             vNode.appendChild(vSummary);
             break;
           default:
