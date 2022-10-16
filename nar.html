@@ -1,5 +1,7 @@
 <!doctype html>
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<title>nar view</title>
 <style>
   body {
     margin: 1.5rem;
@@ -142,6 +144,7 @@
         }
       });
       const rootName = pathName(rootPath);
+      document.title = rootName;
       document.getElementById('root').appendChild(renderNode(rootName, nar.root));
     } catch (e) {
       console.error(e);
