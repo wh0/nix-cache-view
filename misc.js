@@ -64,6 +64,18 @@ function narinfoVisitFields(narinfo, handler) {
   }
 }
 
+function narinfoPath(narinfo) {
+  let rootPath;
+  narinfoVisitFields(narinfo, (k, v) => {
+    switch (k) {
+      case 'StorePath':
+        rootPath = v;
+        break;
+    }
+  });
+  return rootPath;
+}
+
 const PATH_PATTERN = /\/([0-9a-z]{32})-([^/]+)/;
 
 function pathHash(path) {

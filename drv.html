@@ -1,4 +1,7 @@
 <!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>drv view</title>
 <dl>
   <dt>Outputs</dt>
   <dd>
@@ -51,7 +54,13 @@
       const options = new URL(window.location).searchParams;
       const cacheBase = options.get('cache_base');
       const hash = options.get('hash');
+
       const drvNarinfo = await cacheGetNarinfo(cacheBase, hash);
+
+      const rootPath = narinfoPath(drvNarinfo);
+      const rootName = pathName(rootPath);
+      document.title = rootName;
+
       const drvNar = await cacheGetNar(cacheBase, drvNarinfo);
       const drv = drvParse(new TextDecoder().decode(drvNar.root.contents));
 
