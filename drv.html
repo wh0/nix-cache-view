@@ -1,49 +1,49 @@
 <!doctype html>
-<table id="outputs" border="1">
-  <thead>
-    <tr>
-      <td>Output name</td>
-      <td>Path</td>
-      <td>Hash algorithm</td>
-      <td>Hash</td>
-    </tr>
-  </thead>
-</table>
-<table id="input_drvs" border="1">
-  <thead>
-    <tr>
-      <td>Input derivation</td>
-      <td>Outputs</td>
-    </tr>
-  </thead>
-</table>
-<table id="input_srcs" border="1">
-  <thead>
-    <tr>
-      <td>Input source</td>
-    </tr>
-  </thead>
-</table>
 <dl>
+  <dt>Outputs</dt>
+  <dd>
+    <table id="outputs" border="1">
+      <thead>
+        <tr>
+          <td>Name</td>
+          <td>Path</td>
+          <td>Hash algorithm</td>
+          <td>Hash</td>
+        </tr>
+      </thead>
+    </table>
+  </dd>
+  <dt>Input derivations</dt>
+  <dd>
+    <table id="input_drvs" border="1">
+      <thead>
+        <tr>
+          <td>Path</td>
+          <td>Outputs</td>
+        </tr>
+      </thead>
+    </table>
+  </dd>
+  <dt>Input sources</dt>
+  <dd><ul id="input_srcs"></ul></dd>
   <dt>Platform</dt>
   <dd id="platform"></dd>
-</dl>
-<dl>
   <dt>Builder</dt>
   <dd id="builder"></dd>
-</dl>
-<dl>
   <dt>Builder arguments</dt>
   <dd><ol id="builder_args"></ol></dd>
+  <dt>Builder environment</dt>
+  <dd>
+    <table id="env" border="1">
+      <thead>
+        <tr>
+          <td>Name</td>
+          <td>Value</td>
+        </tr>
+      </thead>
+    </table>
+  </dd>
 </dl>
-<table id="env" border="1">
-  <thead>
-    <tr>
-      <td>Environment variable</td>
-      <td>Value</td>
-    </tr>
-  </thead>
-</table>
 <script src="misc.js"></script>
 <script>
   (async () => {
@@ -83,11 +83,13 @@
       }
       const vInputSrcs = document.getElementById('input_srcs');
       for (const inputSrc of inputSrcs) {
+        const item = document.createElement('li');
         const inputSrcLink = document.createElement('a');
         const inputSrcHash = pathHash(inputSrc);
         inputSrcLink.href = `nar.html?cache_base=${encodeURIComponent(cacheBase)}&hash=${encodeURIComponent(inputSrcHash)}`;
         inputSrcLink.textContent = inputSrc;
-        vInputSrcs.insertRow(-1).insertCell(-1).appendChild(inputSrcLink);
+        item.appendChild(inputSrcLink);
+        vInputSrcs.appendChild(item);
       }
       document.getElementById('platform').textContent = platform;
       document.getElementById('builder').textContent = builder;
