@@ -83,7 +83,11 @@
       }
       const vInputSrcs = document.getElementById('input_srcs');
       for (const inputSrc of inputSrcs) {
-        vInputSrcs.insertRow(-1).insertCell(-1).textContent = inputSrc;
+        const inputSrcLink = document.createElement('a');
+        const inputSrcHash = pathHash(inputSrc);
+        inputSrcLink.href = `nar.html?cache_base=${encodeURIComponent(cacheBase)}&hash=${encodeURIComponent(inputSrcHash)}`;
+        inputSrcLink.textContent = inputSrc;
+        vInputSrcs.insertRow(-1).insertCell(-1).appendChild(inputSrcLink);
       }
       document.getElementById('platform').textContent = platform;
       document.getElementById('builder').textContent = builder;
