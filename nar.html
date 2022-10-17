@@ -1,4 +1,42 @@
 <!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>nar view</title>
+<style>
+  body {
+    margin: 1.5rem;
+    font-family: sans-serif;
+  }
+  #root ul {
+    margin: 0.5rem 0rem;
+  }
+  .node {
+    margin: 0.5rem 0rem;
+    min-width: 12rem;
+  }
+  .name {
+    font-family: monospace;
+  }
+  .attr {
+    display: inline-block;
+    border-radius: 0.5rem;
+    padding: 0.1rem 0.4rem;
+    background-color: #e0e0e0;
+    line-height: 0.8rem;
+    font-size: 0.8rem;
+  }
+  .attr.executable {
+    background-color: #ff0080;
+    color: #ffffff;
+  }
+  .attr.symlink {
+    background-color: #80ff00;
+  }
+  .target {
+    font-family: monospace;
+    color: #808080
+  }
+</style>
 <div id="root"></div>
 <script src="misc.js"></script>
 <script>
@@ -12,17 +50,25 @@
       console.log(nar); // %%%
 
       const renderNode = (name, node) => {
-        let vNode;
+        let vNode, vName;
         switch (node.type) {
           case 'regular':
-            vNode = document.createElement('p');
+            vNode = document.createElement('div');
+            vNode.className = 'node regular';
+            vName = document.createElement('span');
+            vName.className = 'name';
+            vName.textContent = name;
+            vNode.appendChild(vName);
+            vNode.appendChild(document.createTextNode(' '));
             if (node.executable) {
               const vExecutable = document.createElement('span');
+              vExecutable.className = 'attr executable';
               vExecutable.textContent = 'executable';
               vNode.appendChild(vExecutable);
               vNode.appendChild(document.createTextNode(' '));
             }
             const vPrepare = document.createElement('input');
+            vPrepare.className = 'prepare';
             vPrepare.type = 'button';
             vPrepare.value = 'create object url';
             vPrepare.onclick = (e) => {
@@ -35,40 +81,53 @@
             vNode.appendChild(vPrepare);
             vNode.appendChild(document.createTextNode(' '));
             const vBlob = document.createElement('a');
+            vBlob.className = 'blob';
             vBlob.download = name;
             vBlob.hidden = true;
             vBlob.textContent = 'contents';
             vNode.appendChild(vBlob);
             break;
           case 'symlink':
-            vNode = document.createElement('p');
+            vNode = document.createElement('div');
+            vNode.className = 'node symlink';
+            vName = document.createElement('span');
+            vName.className = 'name';
+            vName.textContent = name;
+            vNode.appendChild(vName);
+            vNode.appendChild(document.createTextNode(' '));
             const vSymlink = document.createElement('span');
+            vSymlink.className = 'attr symlink';
             vSymlink.textContent = 'symlink';
             vNode.appendChild(vSymlink);
             vNode.appendChild(document.createTextNode(' '));
             const vTarget = document.createElement('span');
+            vTarget.className = 'target';
             vTarget.textContent = node.target;
             vNode.appendChild(vTarget);
             break;
           case 'directory':
             vNode = document.createElement('details');
+            vNode.className = 'node directory';
             let populated = false;
             vNode.ontoggle = (e) => {
               if (populated) return;
               populated = true;
-              vEntries = document.createElement('dl');
+              vEntries = document.createElement('ul');
+              vEntries.className = 'entries';
               for (const entry of node.entries) {
-                const vDt = document.createElement('dt');
-                vDt.textContent = entry.name;
-                vEntries.appendChild(vDt);
-                const vDd = document.createElement('dd');
-                vDd.appendChild(renderNode(entry.name, entry.node));
-                vEntries.appendChild(vDd);
+                const vEntry = document.createElement('li');
+                vEntry.className = 'entry';
+                vEntry.appendChild(renderNode(entry.name, entry.node));
+                vEntries.appendChild(vEntry);
               }
               vNode.appendChild(vEntries);
             };
             const vSummary = document.createElement('summary');
-            vSummary.textContent = `${node.entries.length} entr(ies)`;
+            vName = document.createElement('span');
+            vName.className = 'name';
+            vName.textContent = name;
+            vSummary.appendChild(vName);
+            vSummary.appendChild(document.createTextNode(`\xa0(${node.entries.length})`));
             vNode.appendChild(vSummary);
             break;
           default:
@@ -85,6 +144,7 @@
         }
       });
       const rootName = pathName(rootPath);
+      document.title = rootName;
       document.getElementById('root').appendChild(renderNode(rootName, nar.root));
     } catch (e) {
       console.error(e);
