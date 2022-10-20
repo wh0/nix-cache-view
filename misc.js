@@ -76,14 +76,18 @@ function narinfoPath(narinfo) {
   return rootPath;
 }
 
-const PATH_PATTERN = /\/([0-9a-z]{32})-([^/]+)/;
+const PATH_PATTERN = /\/([0-9a-z]{32})-([^/]+)(.*)/;
+
+function pathMatch(path) {
+  return PATH_PATTERN.exec(path);
+}
 
 function pathHash(path) {
-  return PATH_PATTERN.exec(path)[1];
+  return pathMatch(path)[1];
 }
 
 function pathName(path) {
-  return PATH_PATTERN.exec(path)[2];
+  return pathMatch(path)[2];
 }
 
 function narReadInt(reader) {
