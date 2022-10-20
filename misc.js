@@ -276,3 +276,23 @@ function dbReferrers(db) {
   }
   return referrers;
 }
+
+function uiNodify(text, pattern, replacer) {
+  const frag = document.createDocumentFragment();
+  let lastEnd = 0;
+  while (true) {
+    const m = pattern.exec(text);
+    if (!m) break;
+    const node = replacer(m, text);
+    if (!node) continue;
+    if (lastEnd < m.index) {
+      frag.appendChild(document.createTextNode(text.slice(lastEnd, m.index)));
+    }
+    frag.appendChild(node);
+    lastEnd = pattern.lastIndex;
+  }
+  if (lastEnd < text.length) {
+    frag.appendChild(document.createTextNode(text.slice(lastEnd)));
+  }
+  return frag;
+}
