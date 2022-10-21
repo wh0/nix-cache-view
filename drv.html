@@ -53,6 +53,7 @@
     try {
       const options = new URL(window.location).searchParams;
       const cacheBase = options.get('cache_base');
+      const cacheBaseBin = 'https://cdn.glitch.me/35f4f809-f949-484d-af9c-269b3b7abc78/'; // %%%
       const hash = options.get('hash');
 
       const drvNarinfo = await cacheGetNarinfo(cacheBase, hash);
@@ -71,8 +72,7 @@
         row.insertCell(-1).textContent = name;
         const pathCell = row.insertCell(-1);
         const pathLink = document.createElement('a');
-        const cacheBaseBin = 'https://cdn.glitch.me/35f4f809-f949-484d-af9c-269b3b7abc78/'; // %%%
-        const outputHash = /([0-9a-z]+)-[^/]+/.exec(path)[1];
+        const outputHash = pathHash(path);
         pathLink.href = `nar.html?cache_base=${encodeURIComponent(cacheBaseBin)}&hash=${encodeURIComponent(outputHash)}`;
         pathLink.textContent = path;
         pathCell.appendChild(pathLink);
@@ -84,35 +84,60 @@
         const row = vInputDrvs.insertRow(-1);
         const drvCell = row.insertCell(-1);
         const drvLink = document.createElement('a');
-        const drvHash = /([0-9a-z]+)-[^/]+/.exec(drvPath)[1];
+        const drvHash = pathHash(drvPath);
         drvLink.href = `?cache_base=${encodeURIComponent(cacheBase)}&hash=${encodeURIComponent(drvHash)}`;
         drvLink.textContent = drvPath;
         drvCell.appendChild(drvLink);
         row.insertCell(-1).textContent = drvOutputs.join(', ');
       }
+      const inputSrcHashes = {};
       const vInputSrcs = document.getElementById('input_srcs');
       for (const inputSrc of inputSrcs) {
         const item = document.createElement('li');
         const inputSrcLink = document.createElement('a');
         const inputSrcHash = pathHash(inputSrc);
+        inputSrcHashes[inputSrcHash] = true;
         inputSrcLink.href = `nar.html?cache_base=${encodeURIComponent(cacheBase)}&hash=${encodeURIComponent(inputSrcHash)}`;
         inputSrcLink.textContent = inputSrc;
         item.appendChild(inputSrcLink);
         vInputSrcs.appendChild(item);
       }
       document.getElementById('platform').textContent = platform;
-      document.getElementById('builder').textContent = builder;
+      const maybeLinkifySingle = (path) => {
+        const parts = pathMatch(path);
+        if (!parts) return null;
+        const link = document.createElement('a');
+        const hash = parts[1];
+        const isInputSrc = hash in inputSrcHashes;
+        const base = isInputSrc ? cacheBase : cacheBaseBin;
+        link.href = `nar.html?cache_base=${encodeURIComponent(base)}&hash=${encodeURIComponent(hash)}`;
+        link.textContent = path;
+        return link;
+      };
+      const linkifySingle = (path) => {
+        return maybeLinkifySingle(path) || document.createTextNode(path)
+      };
+      const linkify = (text) => {
+        // Nix allows '=' too, but that works less well
+        // https://github.com/NixOS/nix/blob/2.8.1/src/libstore/path.cc#L14-L17
+        return uiNodify(text, /[\/\w+?.-]+/g, (m) => {
+          const path = m[0];
+          if (!path.startsWith('/')) return null;
+          return maybeLinkifySingle(path);
+        });
+      };
+      document.getElementById('builder').appendChild(linkifySingle(builder));
       const vBuilderArgs = document.getElementById('builder_args');
       for (const builderArg of builderArgs) {
         const item = document.createElement('li');
-        item.textContent = builderArg;
+        item.appendChild(linkify(builderArg));
         vBuilderArgs.appendChild(item);
       }
       const vEnv = document.getElementById('env');
       for (const [name, value] of env) {
         const row = vEnv.insertRow(-1);
         row.insertCell(-1).textContent = name;
-        row.insertCell(-1).textContent = value;
+        row.insertCell(-1).appendChild(linkify(value));
       }
     } catch (e) {
       console.error(e);
