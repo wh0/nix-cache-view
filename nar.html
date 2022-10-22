@@ -16,6 +16,7 @@
   }
   .name {
     font-family: monospace;
+    white-space: pre;
   }
   .attr {
     display: inline-block;
@@ -34,7 +35,8 @@
   }
   .target {
     font-family: monospace;
-    color: #808080
+    color: #808080;
+    white-space: pre;
   }
 </style>
 <div id="root"></div>
@@ -45,7 +47,13 @@
       const options = new URL(window.location).searchParams;
       const cacheBase = options.get('cache_base');
       const hash = options.get('hash');
+
       const narinfo = await cacheGetNarinfo(cacheBase, hash);
+
+      const rootPath = narinfoPath(narinfo);
+      const rootName = pathName(rootPath);
+      document.title = rootName;
+
       const nar = await cacheGetNar(cacheBase, narinfo);
       console.log(nar); // %%%
 
@@ -135,16 +143,6 @@
         }
         return vNode;
       };
-      let rootPath;
-      narinfoVisitFields(narinfo, (k, v) => {
-        switch (k) {
-          case 'StorePath':
-            rootPath = v;
-            break;
-        }
-      });
-      const rootName = pathName(rootPath);
-      document.title = rootName;
       document.getElementById('root').appendChild(renderNode(rootName, nar.root));
     } catch (e) {
       console.error(e);

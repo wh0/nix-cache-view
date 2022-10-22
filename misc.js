@@ -64,14 +64,30 @@ function narinfoVisitFields(narinfo, handler) {
   }
 }
 
-const PATH_PATTERN = /\/([0-9a-z]{32})-([^/]+)/;
+function narinfoPath(narinfo) {
+  let rootPath;
+  narinfoVisitFields(narinfo, (k, v) => {
+    switch (k) {
+      case 'StorePath':
+        rootPath = v;
+        break;
+    }
+  });
+  return rootPath;
+}
+
+const PATH_PATTERN = /\/([0-9a-z]{32})-([^/]+)(.*)/;
+
+function pathMatch(path) {
+  return PATH_PATTERN.exec(path);
+}
 
 function pathHash(path) {
-  return PATH_PATTERN.exec(path)[1];
+  return pathMatch(path)[1];
 }
 
 function pathName(path) {
-  return PATH_PATTERN.exec(path)[2];
+  return pathMatch(path)[2];
 }
 
 function narReadInt(reader) {
@@ -259,4 +275,24 @@ function dbReferrers(db) {
     }
   }
   return referrers;
+}
+
+function uiNodify(text, pattern, replacer) {
+  const frag = document.createDocumentFragment();
+  let lastEnd = 0;
+  while (true) {
+    const m = pattern.exec(text);
+    if (!m) break;
+    const node = replacer(m, text);
+    if (!node) continue;
+    if (lastEnd < m.index) {
+      frag.appendChild(document.createTextNode(text.slice(lastEnd, m.index)));
+    }
+    frag.appendChild(node);
+    lastEnd = pattern.lastIndex;
+  }
+  if (lastEnd < text.length) {
+    frag.appendChild(document.createTextNode(text.slice(lastEnd)));
+  }
+  return frag;
 }
