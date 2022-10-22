@@ -2,10 +2,34 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>drv view</title>
-<dl>
+<style>
+  body {
+    margin: 1.5rem;
+    font-family: sans-serif;
+  }
+  .drv > dt {
+    margin-top: 0.5rem;
+  }
+  .drv table {
+    margin: 0rem -1rem;
+    border-spacing: 1rem 0rem;
+  }
+  .drv thead td {
+    border-bottom: 1px solid #d0d0d0;
+    vertical-align: bottom;
+  }
+  .drv td {
+    vertical-align: baseline;
+  }
+  .verbatim {
+    font-family: monospace;
+    white-space: pre-wrap;
+  }
+</style>
+<dl class="drv">
   <dt>Outputs</dt>
   <dd>
-    <table id="outputs" border="1">
+    <table id="outputs">
       <thead>
         <tr>
           <td>Name</td>
@@ -18,7 +42,7 @@
   </dd>
   <dt>Input derivations</dt>
   <dd>
-    <table id="input_drvs" border="1">
+    <table id="input_drvs">
       <thead>
         <tr>
           <td>Path</td>
@@ -37,7 +61,7 @@
   <dd><ol id="builder_args"></ol></dd>
   <dt>Builder environment</dt>
   <dd>
-    <table id="env" border="1">
+    <table id="env">
       <thead>
         <tr>
           <td>Name</td>
@@ -67,8 +91,9 @@
 
       const [outputs, inputDrvs, inputSrcs, platform, builder, builderArgs, env] = drv;
       const vOutputs = document.getElementById('outputs');
+      const vOutputsBody = vOutputs.createTBody();
       for (const [name, path, narHashAlgorithm, narHash] of outputs) {
-        const row = vOutputs.insertRow(-1);
+        const row = vOutputsBody.insertRow(-1);
         row.insertCell(-1).textContent = name;
         const pathCell = row.insertCell(-1);
         const pathLink = document.createElement('a');
@@ -80,8 +105,9 @@
         row.insertCell(-1).textContent = narHash;
       }
       const vInputDrvs = document.getElementById('input_drvs');
+      const vInputDrvsBody = vInputDrvs.createTBody();
       for (const [drvPath, drvOutputs] of inputDrvs) {
-        const row = vInputDrvs.insertRow(-1);
+        const row = vInputDrvsBody.insertRow(-1);
         const drvCell = row.insertCell(-1);
         const drvLink = document.createElement('a');
         const drvHash = pathHash(drvPath);
@@ -130,14 +156,24 @@
       const vBuilderArgs = document.getElementById('builder_args');
       for (const builderArg of builderArgs) {
         const item = document.createElement('li');
-        item.appendChild(linkify(builderArg));
+        const vBuilderArg = document.createElement('span');
+        vBuilderArg.className = 'verbatim';
+        vBuilderArg.appendChild(linkify(builderArg));
+        item.appendChild(vBuilderArg);
         vBuilderArgs.appendChild(item);
       }
       const vEnv = document.getElementById('env');
+      const vEnvBody = vEnv.createTBody();
       for (const [name, value] of env) {
-        const row = vEnv.insertRow(-1);
-        row.insertCell(-1).textContent = name;
-        row.insertCell(-1).appendChild(linkify(value));
+        const row = vEnvBody.insertRow(-1);
+        const vName = document.createElement('span');
+        vName.className = 'verbatim';
+        vName.textContent = name;
+        row.insertCell(-1).appendChild(vName);
+        const vValue = document.createElement('span');
+        vValue.className = 'verbatim';
+        vValue.appendChild(linkify(value))
+        row.insertCell(-1).appendChild(vValue);
       }
     } catch (e) {
       console.error(e);
