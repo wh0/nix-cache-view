@@ -77,7 +77,7 @@
     try {
       const options = new URL(window.location).searchParams;
       const cacheBase = options.get('cache_base');
-      const cacheBaseBin = 'https://cdn.glitch.me/35f4f809-f949-484d-af9c-269b3b7abc78/'; // %%%
+      const cacheBaseBin = options.get('cache_base_bin') || cacheBase;
       const hash = options.get('hash');
 
       const drvNarinfo = await cacheGetNarinfo(cacheBase, hash);
