@@ -77,7 +77,7 @@
     try {
       const options = new URL(window.location).searchParams;
       const cacheBase = options.get('cache_base');
-      const cacheBaseBin = options.get('cache_base_bin') || cacheBase;
+      const cacheBaseOut = options.get('cache_base_out') || cacheBase;
       const hash = options.get('hash');
 
       const drvNarinfo = await cacheGetNarinfo(cacheBase, hash);
@@ -98,7 +98,7 @@
         const pathCell = row.insertCell(-1);
         const pathLink = document.createElement('a');
         const outputHash = pathHash(path);
-        pathLink.href = `nar.html?cache_base=${encodeURIComponent(cacheBaseBin)}&hash=${encodeURIComponent(outputHash)}`;
+        pathLink.href = `nar.html?cache_base=${encodeURIComponent(cacheBaseOut)}&hash=${encodeURIComponent(outputHash)}`;
         pathLink.textContent = path;
         pathCell.appendChild(pathLink);
         row.insertCell(-1).textContent = narHashAlgorithm;
@@ -135,8 +135,8 @@
         const link = document.createElement('a');
         const hash = parts[1];
         const isInputSrc = hash in inputSrcHashes;
-        const base = isInputSrc ? cacheBase : cacheBaseBin;
-        link.href = `nar.html?cache_base=${encodeURIComponent(base)}&hash=${encodeURIComponent(hash)}`;
+        const linkCacheBase = isInputSrc ? cacheBase : cacheBaseOut;
+        link.href = `nar.html?cache_base=${encodeURIComponent(linkCacheBase)}&hash=${encodeURIComponent(hash)}`;
         link.textContent = path;
         return link;
       };

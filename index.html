@@ -1,17 +1,80 @@
 <!doctype html>
-<form name="path" action="path.html">
-  <p><label>cache base<br><input name="cache_base" value="https://tmpnix-gsdrv.glitch.me/drvs/"></label></p>
-  <p><label>hash<br><input name="hash" value="52xwnqlqa6l4bbf01yifahb517zax89d"></label></p>
-  <p><input type="submit" value="view path"></p>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nix cache view</title>
+<style>
+  body {
+    margin: 1.5rem;
+    font-family: sans-serif;
+  }
+  .wide {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 30rem;
+  }
+</style>
+<p id="presets_container" hidden>
+  <label>Presets</label><br>
+  <select id="presets">
+    <option></option>
+    <option value="https://cache.nixos.org/" selected data-sample-hash="7ghhnlwla2mddkg7hgqa5v0sr8g5hga8">cache.nixos.org</option>
+    <option value="https://tmpnix-gsdrv.glitch.me/drvs/" data-cache-base-out="https://cdn.glitch.me/35f4f809-f949-484d-af9c-269b3b7abc78/" data-sample-hash="52xwnqlqa6l4bbf01yifahb517zax89d">wh0/tmpnix-drv</option>
+    <option value="https://cdn.glitch.me/35f4f809-f949-484d-af9c-269b3b7abc78/" data-cache-base-drv="https://tmpnix-gsdrv.glitch.me/drvs/" data-sample-hash="s3jcnk777vd7vjr1agqn6zc0bpaz07sr">wh0/tmpnix-out</option>
+  </select>
+</p>
+<form name="omni">
+  <p><label>Cache base<br><input name="cache_base" value="https://cache.nixos.org/" class="wide"></label></p>
+  <p><label>Cache base drv<br><input name="cache_base_drv" value="" class="wide"></label></p>
+  <p><label>Cache base out<br><input name="cache_base_out" value="" class="wide"></label></p>
+  <p><label>Hash<br><input name="hash" value="7ghhnlwla2mddkg7hgqa5v0sr8g5hga8" autofocus class="wide"></label></p>
+  <p>
+    <input type="submit" formaction="path.html" value="View path">
+    <input type="submit" formaction="drv.html" value="View drv">
+    <input type="submit" formaction="nar.html" value="View nar">
+  </p>
 </form>
-<form name="drv" action="drv.html">
-  <p><label>cache base<br><input name="cache_base" value="https://tmpnix-gsdrv.glitch.me/drvs/"></label></p>
-  <p><label>hash<br><input name="hash" value="52xwnqlqa6l4bbf01yifahb517zax89d"></label></p>
-  <p><label>cache base bin<br><input name="cache_base_bin" value="https://cdn.glitch.me/35f4f809-f949-484d-af9c-269b3b7abc78/"></label></p>
-  <p><input type="submit" value="view drv"></p>
-</form>
-<form name="nar" action="nar.html">
-  <p><label>cache base<br><input name="cache_base" value="https://cdn.glitch.me/35f4f809-f949-484d-af9c-269b3b7abc78/"></label></p>
-  <p><label>hash<br><input name="hash" value="s3jcnk777vd7vjr1agqn6zc0bpaz07sr"></label></p>
-  <p><input type="submit" value="view nar"></p>
-</form>
+<script>
+  // when we load a preset, set the hash input's .value so that the browser thinks it's dirty.
+  // if we don't, then it'll show up with the cache.nixos.org sample hash when we go back.
+  // but remember that it's not _really_ dirty and we can still feel free to clobber it when changing presets.
+  let hashReallyDirty = false;
+  document.forms.omni.onsubmit = (e) => {
+    console.log('submit');
+    // disable empty extra fields to make the url cleaner
+    if (!e.target.elements.cache_base_drv.value) {
+      e.target.elements.cache_base_drv.disabled = true;
+    }
+    if (!e.target.elements.cache_base_out.value) {
+      e.target.elements.cache_base_out.disabled = true;
+    }
+  };
+  document.getElementById('presets').oninput = (e) => {
+    if (e.target.selectedIndex === 0) return;
+    document.forms.omni.elements.cache_base.value = e.target.value;
+    const vPreset = e.target.selectedOptions[0];
+    document.forms.omni.elements.cache_base_drv.value = vPreset.dataset.cacheBaseDrv || '';
+    document.forms.omni.elements.cache_base_out.value = vPreset.dataset.cacheBaseOut || '';
+    if (!hashReallyDirty) {
+      document.forms.omni.elements.hash.value = vPreset.dataset.sampleHash || '';
+    }
+  };
+  document.forms.omni.elements.cache_base.oninput = (e) => {
+    document.getElementById('presets').selectedIndex = 0;
+  };
+  document.forms.omni.elements.cache_base_drv.oninput = (e) => {
+    document.getElementById('presets').selectedIndex = 0;
+  };
+  document.forms.omni.elements.cache_base_out.oninput = (e) => {
+    document.getElementById('presets').selectedIndex = 0;
+  };
+  document.forms.omni.elements.hash.oninput = (e) => {
+    console.log('hash really dirty');
+    hashReallyDirty = true;
+  };
+  window.onpagehide = (e) => {
+    // re-enable controls that we disabled for submission
+    document.forms.omni.elements.cache_base_drv.disabled = false;
+    document.forms.omni.elements.cache_base_out.disabled = false;
+  };
+  document.getElementById('presets_container').hidden = false;
+</script>
