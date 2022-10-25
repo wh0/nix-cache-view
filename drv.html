@@ -77,8 +77,37 @@
     try {
       const options = new URL(window.location).searchParams;
       const cacheBase = options.get('cache_base');
-      const cacheBaseOut = options.get('cache_base_out') || cacheBase;
+      const cacheBaseOut = options.get('cache_base_out');
       const hash = options.get('hash');
+      const linkToDrv = (linkHash) => {
+        let href = '';
+        href += `?cache_base=${encodeURIComponent(cacheBase)}`;
+        if (cacheBaseOut) {
+          href += `&cache_base_out=${encodeURIComponent(cacheBaseOut)}`;
+        }
+        href += `&hash=${encodeURIComponent(linkHash)}`;
+        return href;
+      };
+      const linkToNarOut = (linkHash) => {
+        let href = 'nar.html';
+        if (cacheBaseOut) {
+          href += `?cache_base=${encodeURIComponent(cacheBaseOut)}`;
+          href += `&cache_base_drv=${encodeURIComponent(cacheBase)}`;
+        } else {
+          href += `?cache_base=${encodeURIComponent(cacheBase)}`;
+        }
+        href += `&hash=${encodeURIComponent(linkHash)}`;
+        return href;
+      };
+      const linkToNarSrc = (linkHash) => {
+        let href = 'nar.html';
+        href += `?cache_base=${encodeURIComponent(cacheBase)}`;
+        if (cacheBaseOut) {
+          href += `&cache_base_out=${encodeURIComponent(cacheBaseOut)}`;
+        }
+        href += `&hash=${encodeURIComponent(linkHash)}`;
+        return href;
+      };
 
       const drvNarinfo = await cacheGetNarinfo(cacheBase, hash);
 
@@ -98,7 +127,7 @@
         const pathCell = row.insertCell(-1);
         const pathLink = document.createElement('a');
         const outputHash = pathHash(path);
-        pathLink.href = `nar.html?cache_base=${encodeURIComponent(cacheBaseOut)}&hash=${encodeURIComponent(outputHash)}`;
+        pathLink.href = linkToNarOut(outputHash);
         pathLink.textContent = path;
         pathCell.appendChild(pathLink);
         row.insertCell(-1).textContent = narHashAlgorithm;
@@ -111,7 +140,7 @@
         const drvCell = row.insertCell(-1);
         const drvLink = document.createElement('a');
         const drvHash = pathHash(drvPath);
-        drvLink.href = `?cache_base=${encodeURIComponent(cacheBase)}&hash=${encodeURIComponent(drvHash)}`;
+        drvLink.href = linkToDrv(drvHash);
         drvLink.textContent = drvPath;
         drvCell.appendChild(drvLink);
         row.insertCell(-1).textContent = drvOutputs.join(', ');
@@ -123,7 +152,7 @@
         const inputSrcLink = document.createElement('a');
         const inputSrcHash = pathHash(inputSrc);
         inputSrcHashes[inputSrcHash] = true;
-        inputSrcLink.href = `nar.html?cache_base=${encodeURIComponent(cacheBase)}&hash=${encodeURIComponent(inputSrcHash)}`;
+        inputSrcLink.href = linkToNarSrc(inputSrcHash);
         inputSrcLink.textContent = inputSrc;
         item.appendChild(inputSrcLink);
         vInputSrcs.appendChild(item);
@@ -133,10 +162,9 @@
         const parts = pathMatch(path);
         if (!parts) return null;
         const link = document.createElement('a');
-        const hash = parts[1];
-        const isInputSrc = hash in inputSrcHashes;
-        const linkCacheBase = isInputSrc ? cacheBase : cacheBaseOut;
-        link.href = `nar.html?cache_base=${encodeURIComponent(linkCacheBase)}&hash=${encodeURIComponent(hash)}`;
+        const linkHash = parts[1];
+        const isInputSrc = linkHash in inputSrcHashes;
+        link.href = isInputSrc ? linkToNarSrc(linkHash) : linkToNarOut(linkHash);
         link.textContent = path;
         return link;
       };
