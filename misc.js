@@ -136,6 +136,10 @@ function pathName(path) {
   return pathMatch(path)[2];
 }
 
+function basenameHash(basename) {
+  return basename.slice(0, 32);
+}
+
 function narReadInt(reader) {
   const i = reader.data.getBigInt64(reader.pos, true);
   reader.pos += 8;

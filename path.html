@@ -14,7 +14,7 @@
 
       const vReferences = document.getElementById('references');
       for (const reference of narinfo.references) {
-        const refHash = /([0-9a-z]+)-[^/]+$/.exec(reference)[1];
+        const refHash = basenameHash(reference);
         const vLi = document.createElement('li');
         const vA = document.createElement('a');
         vA.href = `?cache_base=${encodeURIComponent(cacheBase)}&hash=${encodeURIComponent(refHash)}`;
