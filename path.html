@@ -12,18 +12,8 @@
       const hash = options.get('hash');
       const narinfo = await cacheGetNarinfo(cacheBase, hash);
 
-      const references = [];
-      narinfoVisitFields(narinfo, (k, v) => {
-        switch (k) {
-          case 'References':
-            if (v) {
-              references.push(...v.split(' '));
-            }
-            break;
-        }
-      });
       const vReferences = document.getElementById('references');
-      for (const reference of references) {
+      for (const reference of narinfo.references) {
         const refHash = /([0-9a-z]+)-[^/]+$/.exec(reference)[1];
         const vLi = document.createElement('li');
         const vA = document.createElement('a');

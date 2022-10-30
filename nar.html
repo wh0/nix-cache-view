@@ -50,7 +50,7 @@
 
       const narinfo = await cacheGetNarinfo(cacheBase, hash);
 
-      const rootPath = narinfoPath(narinfo);
+      const rootPath = narinfo.path;
       const rootName = pathName(rootPath);
       document.title = rootName;
 

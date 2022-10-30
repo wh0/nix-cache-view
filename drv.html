@@ -111,7 +111,7 @@
 
       const drvNarinfo = await cacheGetNarinfo(cacheBase, hash);
 
-      const rootPath = narinfoPath(drvNarinfo);
+      const rootPath = drvNarinfo.path;
       const rootName = pathName(rootPath);
       document.title = rootName;
 
