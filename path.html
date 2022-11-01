@@ -1,7 +1,41 @@
 <!doctype html>
-<dl>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>path view</title>
+<style>
+  body {
+    margin: 1.5rem;
+    font-family: sans-serif;
+  }
+  .path > dt {
+    margin-top: 0.5rem;
+  }
+</style>
+<dl class="path">
+  <dt>.narinfo file</dt>
+  <dd id="narinfo_file"></dd>
+  <dt>Store path</dt>
+  <dd id="path"></dd>
+  <dt>File URL</dt>
+  <dd id="url"></dd>
+  <dt>File compression</dt>
+  <dd id="compression"></dd>
+  <dt>File hash</dt>
+  <dd id="file_hash"></dd>
+  <dt>File size</dt>
+  <dd id="file_size"></dd>
+  <dt>.nar hash</dt>
+  <dd id="nar_hash"></dd>
+  <dt>.nar size</dt>
+  <dd id="nar_size"></dd>
   <dt>References</dt>
   <dd><ul id="references"></ul></dd>
+  <dt>Deriver</dt>
+  <dd id="deriver"></dd>
+  <dt>Signatures</dt>
+  <dd><ul id="sigs"></ul></dd>
+  <dt>Content address</dt>
+  <dd id="ca"></dd>
 </dl>
 <script src="misc.js"></script>
 <script>
@@ -9,28 +43,74 @@
     try {
       const options = new URL(window.location).searchParams;
       const cacheBase = options.get('cache_base');
+      const cacheBaseDrv = options.get('cache_base_drv');
       const hash = options.get('hash');
+      const linkToDrv = (linkHash) => {
+        let href = 'drv.html';
+        if (cacheBaseDrv) {
+          href += `?cache_base=${encodeURIComponent(cacheBaseDrv)}`;
+          href += `&cache_base_out=${encodeURIComponent(cacheBase)}`;
+        } else {
+          href += `?cache_base=${encodeURIComponent(cacheBase)}`;
+        }
+        href += `&hash=${encodeURIComponent(linkHash)}`;
+        return href;
+      };
+
+      const vNarinfoFile = document.getElementById('narinfo_file');
+      const vNarinfoLink = document.createElement('a');
+      vNarinfoLink.href = `${cacheBase}${hash}.narinfo`;
+      vNarinfoLink.textContent = `${hash}.narinfo`;
+      vNarinfoFile.appendChild(vNarinfoLink);
+
       const narinfo = await cacheGetNarinfo(cacheBase, hash);
 
-      const references = [];
-      narinfoVisitFields(narinfo, (k, v) => {
-        switch (k) {
-          case 'References':
-            if (v) {
-              references.push(...v.split(' '));
-            }
-            break;
-        }
-      });
+      const rootPath = narinfo.path;
+      const rootName = pathName(rootPath);
+      document.title = rootName;
+      const vPath = document.getElementById('path');
+      vPath.textContent = narinfo.path;
+      const vUrl = document.getElementById('url');
+      const vUrlLink = document.createElement('a');
+      vUrlLink.href = new URL(narinfo.url, cacheBase).href;
+      vUrlLink.textContent = narinfo.url;
+      vUrl.appendChild(vUrlLink);
+      const vCompression = document.getElementById('compression');
+      vCompression.textContent = narinfo.compression;
+      const vFileHash = document.getElementById('file_hash');
+      vFileHash.textContent = narinfo.fileHash;
+      const vFileSize = document.getElementById('file_size');
+      vFileSize.textContent = narinfo.fileSize;
+      const vNarHash = document.getElementById('nar_hash');
+      vNarHash.textContent = narinfo.narHash;
+      const vNarSize = document.getElementById('nar_size');
+      vNarSize.textContent = narinfo.narSize;
       const vReferences = document.getElementById('references');
-      for (const reference of references) {
-        const refHash = /([0-9a-z]+)-[^/]+$/.exec(reference)[1];
+      for (const reference of narinfo.references) {
+        const refHash = basenameHash(reference);
         const vLi = document.createElement('li');
         const vA = document.createElement('a');
         vA.href = `?cache_base=${encodeURIComponent(cacheBase)}&hash=${encodeURIComponent(refHash)}`;
         vA.textContent = reference;
         vLi.appendChild(vA);
         vReferences.appendChild(vLi);
+      }
+      const vDeriver = document.getElementById('deriver');
+      if (narinfo.deriver) {
+        const deriverLink = document.createElement('a');
+        deriverLink.href = linkToDrv(basenameHash(narinfo.deriver));
+        deriverLink.textContent = narinfo.deriver;
+        vDeriver.appendChild(deriverLink);
+      }
+      const vSigs = document.getElementById('sigs');
+      for (const sig of narinfo.sigs) {
+        const vLi = document.createElement('li');
+        vLi.textContent = sig;
+        vSigs.appendChild(vLi);
+      }
+      const vCa = document.getElementById('ca');
+      if (narinfo.ca) {
+        vCa.textContent = narinfo.ca;
       }
     } catch (e) {
       console.error(e);

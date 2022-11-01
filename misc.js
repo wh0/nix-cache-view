@@ -56,24 +56,70 @@ async function xzDecompress(inBuf, outSize) {
   return outBuf;
 }
 
-function narinfoVisitFields(narinfo, handler) {
+function narinfoVisitFields(narinfoText, handler) {
   const pattern = /^([^:]*): (.*)\n/mg;
   let m;
-  while (m = pattern.exec(narinfo)) {
+  while (m = pattern.exec(narinfoText)) {
     handler(m[1], m[2]);
   }
 }
 
-function narinfoPath(narinfo) {
-  let rootPath;
-  narinfoVisitFields(narinfo, (k, v) => {
+function narinfoParse(narinfoText) {
+  const narinfo = {
+    path: null,
+    url: null,
+    compression: null,
+    fileHash: null,
+    fileSize: null,
+    narHash: null,
+    narSize: null,
+    references: [],
+    deriver: null,
+    sigs: [],
+    ca: null,
+  };
+  narinfoVisitFields(narinfoText, (k, v) => {
     switch (k) {
       case 'StorePath':
-        rootPath = v;
+        narinfo.path = v;
+        break;
+      case 'URL':
+        narinfo.url = v;
+        break;
+      case 'Compression':
+        narinfo.compression = v;
+        break;
+      case 'FileHash':
+        narinfo.fileHash = v;
+        break;
+      case 'FileSize':
+        narinfo.fileSize = +v;
+        break;
+      case 'NarHash':
+        narinfo.narHash = v;
+        break;
+      case 'NarSize':
+        narinfo.narSize = +v;
+        break;
+      case 'References':
+        if (v) {
+          narinfo.references.push(...v.split(' '));
+        }
+        break;
+      case 'Deriver':
+        if (v !== 'unknown-deriver') {
+          narinfo.deriver = v;
+        }
+        break;
+      case 'Sig':
+        narinfo.sigs.push(v);
+        break;
+      case 'CA':
+        narinfo.ca = v;
         break;
     }
   });
-  return rootPath;
+  return narinfo;
 }
 
 const PATH_PATTERN = /\/([0-9a-z]{32})-([^/]+)(.*)/;
@@ -88,6 +134,10 @@ function pathHash(path) {
 
 function pathName(path) {
   return pathMatch(path)[2];
+}
+
+function basenameHash(basename) {
+  return basename.slice(0, 32);
 }
 
 function narReadInt(reader) {
@@ -209,36 +259,21 @@ function drvParse(drvText) {
 
 async function cacheGetNarinfo(base, hash) {
   const narinfoUrl = `${base}${hash}.narinfo`;
-  return await fetchOkText(narinfoUrl);
+  const narinfoText = await fetchOkText(narinfoUrl);
+  return narinfoParse(narinfoText);
 }
 
 async function cacheGetNar(base, narinfo) {
-  let narXzUrl, compression, narXzSize, narSize;
-  narinfoVisitFields(narinfo, (k, v) => {
-    switch (k) {
-      case 'URL':
-        narXzUrl = new URL(v, base).href;
-        break;
-      case 'Compression':
-        compression = v;
-        if (compression !== 'xz') throw new Error(`narinfo unsupported compression ${compression}`);
-        break;
-      case 'FileSize':
-        narXzSize = +v;
-        break;
-      case 'NarSize':
-        narSize = +v;
-        break;
-    }
-  });
+  if (narinfo.compression !== 'xz') throw new Error(`narinfo unsupported compression ${narinfo.compression}`);
+  const narXzUrl = new URL(narinfo.url, base).href;
 
   console.log('download nar xz');
   const narXzBuf = await fetchOkBuf(narXzUrl);
-  if (narXzBuf.byteLength !== narXzSize) throw new Error(`nar xz ${narXzBuf.byteLength} bytes, expected ${narXzSize}`);
+  if (narXzBuf.byteLength !== narinfo.fileSize) throw new Error(`nar xz ${narXzBuf.byteLength} bytes, expected ${narinfo.fileSize}`);
 
   console.log('decompress nar xz');
-  const narBuf = await xzDecompress(narXzBuf, narSize);
-  if (narBuf.byteLength !== narSize) throw new Error(`drv nar ${narBuf.byteLength} bytes, expected ${narSize}`);
+  const narBuf = await xzDecompress(narXzBuf, narinfo.narSize);
+  if (narBuf.byteLength !== narinfo.narSize) throw new Error(`drv nar ${narBuf.byteLength} bytes, expected ${narinfo.narSize}`);
 
   console.log('read nar');
   return narRead(narBuf);
