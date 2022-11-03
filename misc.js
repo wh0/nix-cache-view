@@ -140,6 +140,14 @@ function basenameHash(basename) {
   return basename.slice(0, 32);
 }
 
+function basenameName(basename) {
+  return basename.slice(33);
+}
+
+function nameIsDerivation(name) {
+  return name.endsWith('.drv');
+}
+
 function narReadInt(reader) {
   const i = reader.data.getBigInt64(reader.pos, true);
   reader.pos += 8;
