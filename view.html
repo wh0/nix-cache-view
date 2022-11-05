@@ -162,6 +162,9 @@
           href += `&cache_base_drv=${encodeURIComponent(cacheBase)}`;
         } else {
           href += `?cache_base=${encodeURIComponent(cacheBase)}`;
+          if (cacheBaseDrv) {
+            href += `&cache_base_drv=${encodeURIComponent(cacheBaseDrv)}`;
+          }
         }
         href += `&hash=${encodeURIComponent(linkHash)}`;
         return href;
