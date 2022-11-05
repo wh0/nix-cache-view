@@ -1,0 +1,422 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>view</title>
+<style>
+  body {
+    margin: 1.5rem;
+    font-family: sans-serif;
+  }
+  .path > dt {
+    margin-top: 0.5rem;
+  }
+  #root ul {
+    margin: 0.5rem 0rem;
+  }
+  .node {
+    margin: 0.5rem 0rem;
+    min-width: 12rem;
+  }
+  .name {
+    font-family: monospace;
+    white-space: pre;
+  }
+  .attr {
+    display: inline-block;
+    border-radius: 0.5rem;
+    padding: 0.1rem 0.4rem;
+    background-color: #e0e0e0;
+    line-height: 0.8rem;
+    font-size: 0.8rem;
+  }
+  .attr.executable {
+    background-color: #ff0080;
+    color: #ffffff;
+  }
+  .attr.symlink {
+    background-color: #80ff00;
+  }
+  .target {
+    font-family: monospace;
+    color: #808080;
+    white-space: pre;
+  }
+  .drv > dt {
+    margin-top: 0.5rem;
+  }
+  .drv table {
+    margin: 0rem -1rem;
+    border-spacing: 1rem 0rem;
+  }
+  .drv thead td {
+    border-bottom: 1px solid #d0d0d0;
+    vertical-align: bottom;
+  }
+  .drv td {
+    vertical-align: baseline;
+  }
+  .verbatim {
+    font-family: monospace;
+    white-space: pre-wrap;
+  }
+</style>
+<dl class="path">
+  <dt>.narinfo file</dt>
+  <dd id="narinfo_file"></dd>
+  <dt>Store path</dt>
+  <dd id="path"></dd>
+  <dt>File URL</dt>
+  <dd id="url"></dd>
+  <dt>File compression</dt>
+  <dd id="compression"></dd>
+  <dt>File hash</dt>
+  <dd id="file_hash"></dd>
+  <dt>File size</dt>
+  <dd id="file_size"></dd>
+  <dt>.nar hash</dt>
+  <dd id="nar_hash"></dd>
+  <dt>.nar size</dt>
+  <dd id="nar_size"></dd>
+  <dt>References</dt>
+  <dd><ul id="references"></ul></dd>
+  <dt>Deriver</dt>
+  <dd id="deriver"></dd>
+  <dt>Signatures</dt>
+  <dd><ul id="sigs"></ul></dd>
+  <dt>Content address</dt>
+  <dd id="ca"></dd>
+</dl>
+<div id="root"></div>
+<dl class="drv">
+  <dt>Outputs</dt>
+  <dd>
+    <table id="outputs">
+      <thead>
+        <tr>
+          <td>Name</td>
+          <td>Path</td>
+          <td>Hash algorithm</td>
+          <td>Hash</td>
+        </tr>
+      </thead>
+    </table>
+  </dd>
+  <dt>Input derivations</dt>
+  <dd>
+    <table id="input_drvs">
+      <thead>
+        <tr>
+          <td>Path</td>
+          <td>Outputs</td>
+        </tr>
+      </thead>
+    </table>
+  </dd>
+  <dt>Input sources</dt>
+  <dd><ul id="input_srcs"></ul></dd>
+  <dt>Platform</dt>
+  <dd id="platform"></dd>
+  <dt>Builder</dt>
+  <dd id="builder"></dd>
+  <dt>Builder arguments</dt>
+  <dd><ol id="builder_args"></ol></dd>
+  <dt>Builder environment</dt>
+  <dd>
+    <table id="env">
+      <thead>
+        <tr>
+          <td>Name</td>
+          <td>Value</td>
+        </tr>
+      </thead>
+    </table>
+  </dd>
+</dl>
+<script src="misc.js"></script>
+<script>
+  (async () => {
+    try {
+      const options = new URL(window.location).searchParams;
+      const cacheBase = options.get('cache_base');
+      const cacheBaseDrv = options.get('cache_base_drv');
+      const cacheBaseOut = options.get('cache_base_out');
+      const hash = options.get('hash');
+      const linkToDrv = (linkHash) => {
+        let href = '';
+        if (cacheBaseDrv) {
+          href += `?cache_base=${encodeURIComponent(cacheBaseDrv)}`;
+          href += `&cache_base_out=${encodeURIComponent(cacheBase)}`;
+        } else {
+          href += `?cache_base=${encodeURIComponent(cacheBase)}`;
+          if (cacheBaseOut) {
+            href += `&cache_base_out=${encodeURIComponent(cacheBaseOut)}`;
+          }
+        }
+        href += `&hash=${encodeURIComponent(linkHash)}`;
+        return href;
+      };
+      const linkToOut = (linkHash) => {
+        let href = '';
+        if (cacheBaseOut) {
+          href += `?cache_base=${encodeURIComponent(cacheBaseOut)}`;
+          href += `&cache_base_drv=${encodeURIComponent(cacheBase)}`;
+        } else {
+          href += `?cache_base=${encodeURIComponent(cacheBase)}`;
+        }
+        href += `&hash=${encodeURIComponent(linkHash)}`;
+        return href;
+      };
+      const linkToPeer = (linkHash) => {
+        let href = '';
+        href += `?cache_base=${encodeURIComponent(cacheBase)}`;
+        if (cacheBaseDrv) {
+          href += `&cache_base_drv=${encodeURIComponent(cacheBaseDrv)}`;
+        }
+        if (cacheBaseOut) {
+          href += `&cache_base_out=${encodeURIComponent(cacheBaseOut)}`;
+        }
+        href += `&hash=${encodeURIComponent(linkHash)}`;
+        return href;
+      };
+
+      const vNarinfoFile = document.getElementById('narinfo_file');
+      const vNarinfoLink = document.createElement('a');
+      vNarinfoLink.href = `${cacheBase}${hash}.narinfo`;
+      vNarinfoLink.textContent = `${hash}.narinfo`;
+      vNarinfoFile.appendChild(vNarinfoLink);
+
+      const narinfo = await cacheGetNarinfo(cacheBase, hash);
+
+      const rootPath = narinfo.path;
+      const rootName = pathName(rootPath);
+      document.title = rootName;
+      const vPath = document.getElementById('path');
+      vPath.textContent = narinfo.path;
+      const vUrl = document.getElementById('url');
+      const vUrlLink = document.createElement('a');
+      vUrlLink.href = new URL(narinfo.url, cacheBase).href;
+      vUrlLink.textContent = narinfo.url;
+      vUrl.appendChild(vUrlLink);
+      const vCompression = document.getElementById('compression');
+      vCompression.textContent = narinfo.compression;
+      const vFileHash = document.getElementById('file_hash');
+      vFileHash.textContent = narinfo.fileHash;
+      const vFileSize = document.getElementById('file_size');
+      vFileSize.textContent = narinfo.fileSize;
+      const vNarHash = document.getElementById('nar_hash');
+      vNarHash.textContent = narinfo.narHash;
+      const vNarSize = document.getElementById('nar_size');
+      vNarSize.textContent = narinfo.narSize;
+      const vReferences = document.getElementById('references');
+      for (const reference of narinfo.references) {
+        const refHash = basenameHash(reference);
+        const vLi = document.createElement('li');
+        const vA = document.createElement('a');
+        vA.href = linkToPeer(refHash);
+        vA.textContent = reference;
+        vLi.appendChild(vA);
+        vReferences.appendChild(vLi);
+      }
+      const vDeriver = document.getElementById('deriver');
+      if (narinfo.deriver) {
+        const deriverLink = document.createElement('a');
+        deriverLink.href = linkToDrv(basenameHash(narinfo.deriver));
+        deriverLink.textContent = narinfo.deriver;
+        vDeriver.appendChild(deriverLink);
+      }
+      const vSigs = document.getElementById('sigs');
+      for (const sig of narinfo.sigs) {
+        const vLi = document.createElement('li');
+        vLi.textContent = sig;
+        vSigs.appendChild(vLi);
+      }
+      const vCa = document.getElementById('ca');
+      if (narinfo.ca) {
+        vCa.textContent = narinfo.ca;
+      }
+
+      const nar = await cacheGetNar(cacheBase, narinfo);
+      console.log(nar); // %%%
+
+      const renderNode = (name, node) => {
+        let vNode, vName;
+        switch (node.type) {
+          case 'regular':
+            vNode = document.createElement('div');
+            vNode.className = 'node regular';
+            vName = document.createElement('span');
+            vName.className = 'name';
+            vName.textContent = name;
+            vNode.appendChild(vName);
+            vNode.appendChild(document.createTextNode(' '));
+            if (node.executable) {
+              const vExecutable = document.createElement('span');
+              vExecutable.className = 'attr executable';
+              vExecutable.textContent = 'executable';
+              vNode.appendChild(vExecutable);
+              vNode.appendChild(document.createTextNode(' '));
+            }
+            const vPrepare = document.createElement('input');
+            vPrepare.className = 'prepare';
+            vPrepare.type = 'button';
+            vPrepare.value = 'create object url';
+            vPrepare.onclick = (e) => {
+              vPrepare.disabled = true;
+              const blob = new Blob([node.contents], {type: 'application/octet-stream'});
+              const url = URL.createObjectURL(blob);
+              vBlob.href = url;
+              vBlob.hidden = false;
+            };
+            vNode.appendChild(vPrepare);
+            vNode.appendChild(document.createTextNode(' '));
+            const vBlob = document.createElement('a');
+            vBlob.className = 'blob';
+            vBlob.download = name;
+            vBlob.hidden = true;
+            vBlob.textContent = 'contents';
+            vNode.appendChild(vBlob);
+            break;
+          case 'symlink':
+            vNode = document.createElement('div');
+            vNode.className = 'node symlink';
+            vName = document.createElement('span');
+            vName.className = 'name';
+            vName.textContent = name;
+            vNode.appendChild(vName);
+            vNode.appendChild(document.createTextNode(' '));
+            const vSymlink = document.createElement('span');
+            vSymlink.className = 'attr symlink';
+            vSymlink.textContent = 'symlink';
+            vNode.appendChild(vSymlink);
+            vNode.appendChild(document.createTextNode(' '));
+            const vTarget = document.createElement('span');
+            vTarget.className = 'target';
+            vTarget.textContent = node.target;
+            vNode.appendChild(vTarget);
+            break;
+          case 'directory':
+            vNode = document.createElement('details');
+            vNode.className = 'node directory';
+            let populated = false;
+            vNode.ontoggle = (e) => {
+              if (populated) return;
+              populated = true;
+              vEntries = document.createElement('ul');
+              vEntries.className = 'entries';
+              for (const entry of node.entries) {
+                const vEntry = document.createElement('li');
+                vEntry.className = 'entry';
+                vEntry.appendChild(renderNode(entry.name, entry.node));
+                vEntries.appendChild(vEntry);
+              }
+              vNode.appendChild(vEntries);
+            };
+            const vSummary = document.createElement('summary');
+            vName = document.createElement('span');
+            vName.className = 'name';
+            vName.textContent = name;
+            vSummary.appendChild(vName);
+            vSummary.appendChild(document.createTextNode(`\xa0(${node.entries.length})`));
+            vNode.appendChild(vSummary);
+            break;
+          default:
+            throw new Error(`unrecognized type ${node.type}`)
+        }
+        return vNode;
+      };
+      document.getElementById('root').appendChild(renderNode(rootName, nar.root));
+
+      if (nameIsDerivation(rootName)) {
+        const drv = drvParse(new TextDecoder().decode(nar.root.contents));
+
+        const [outputs, inputDrvs, inputSrcs, platform, builder, builderArgs, env] = drv;
+        const vOutputs = document.getElementById('outputs');
+        const vOutputsBody = vOutputs.createTBody();
+        for (const [name, path, narHashAlgorithm, narHash] of outputs) {
+          const row = vOutputsBody.insertRow(-1);
+          row.insertCell(-1).textContent = name;
+          const pathCell = row.insertCell(-1);
+          const pathLink = document.createElement('a');
+          const outputHash = pathHash(path);
+          pathLink.href = linkToOut(outputHash);
+          pathLink.textContent = path;
+          pathCell.appendChild(pathLink);
+          row.insertCell(-1).textContent = narHashAlgorithm;
+          row.insertCell(-1).textContent = narHash;
+        }
+        const vInputDrvs = document.getElementById('input_drvs');
+        const vInputDrvsBody = vInputDrvs.createTBody();
+        for (const [drvPath, drvOutputs] of inputDrvs) {
+          const row = vInputDrvsBody.insertRow(-1);
+          const drvCell = row.insertCell(-1);
+          const drvLink = document.createElement('a');
+          const drvHash = pathHash(drvPath);
+          drvLink.href = linkToDrv(drvHash);
+          drvLink.textContent = drvPath;
+          drvCell.appendChild(drvLink);
+          row.insertCell(-1).textContent = drvOutputs.join(', ');
+        }
+        const inputSrcHashes = {};
+        const vInputSrcs = document.getElementById('input_srcs');
+        for (const inputSrc of inputSrcs) {
+          const item = document.createElement('li');
+          const inputSrcLink = document.createElement('a');
+          const inputSrcHash = pathHash(inputSrc);
+          inputSrcHashes[inputSrcHash] = true;
+          inputSrcLink.href = linkToPeer(inputSrcHash);
+          inputSrcLink.textContent = inputSrc;
+          item.appendChild(inputSrcLink);
+          vInputSrcs.appendChild(item);
+        }
+        document.getElementById('platform').textContent = platform;
+        const maybeLinkifySingle = (path) => {
+          const parts = pathMatch(path);
+          if (!parts) return null;
+          const link = document.createElement('a');
+          const linkHash = parts[1];
+          const isInputSrc = linkHash in inputSrcHashes;
+          link.href = isInputSrc ? linkToPeer(linkHash) : linkToOut(linkHash);
+          link.textContent = path;
+          return link;
+        };
+        const linkifySingle = (path) => {
+          return maybeLinkifySingle(path) || document.createTextNode(path)
+        };
+        const linkify = (text) => {
+          // Nix allows '=' too, but that works less well
+          // https://github.com/NixOS/nix/blob/2.8.1/src/libstore/path.cc#L14-L17
+          return uiNodify(text, /[\/\w+?.-]+/g, (m) => {
+            const path = m[0];
+            if (!path.startsWith('/')) return null;
+            return maybeLinkifySingle(path);
+          });
+        };
+        document.getElementById('builder').appendChild(linkifySingle(builder));
+        const vBuilderArgs = document.getElementById('builder_args');
+        for (const builderArg of builderArgs) {
+          const item = document.createElement('li');
+          const vBuilderArg = document.createElement('span');
+          vBuilderArg.className = 'verbatim';
+          vBuilderArg.appendChild(linkify(builderArg));
+          item.appendChild(vBuilderArg);
+          vBuilderArgs.appendChild(item);
+        }
+        const vEnv = document.getElementById('env');
+        const vEnvBody = vEnv.createTBody();
+        for (const [name, value] of env) {
+          const row = vEnvBody.insertRow(-1);
+          const vName = document.createElement('span');
+          vName.className = 'verbatim';
+          vName.textContent = name;
+          row.insertCell(-1).appendChild(vName);
+          const vValue = document.createElement('span');
+          vValue.className = 'verbatim';
+          vValue.appendChild(linkify(value))
+          row.insertCell(-1).appendChild(vValue);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  })();
+</script>
