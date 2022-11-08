@@ -288,6 +288,9 @@ async function cacheGetNar(base, narinfo) {
     case 'xz':
       narBuf = await xzDecompress(fileBuf, narinfo.narSize);
       break;
+    case 'none':
+      narBuf = fileBuf;
+      break;
     default:
       throw new Error(`narinfo unsupported compression ${narinfo.compression}`);
   }
