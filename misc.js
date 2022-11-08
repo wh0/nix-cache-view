@@ -276,16 +276,22 @@ function cacheFileUrl(base, narinfo) {
 }
 
 async function cacheGetNar(base, narinfo) {
-  if (narinfo.compression !== 'xz') throw new Error(`narinfo unsupported compression ${narinfo.compression}`);
-  const narXzUrl = cacheFileUrl(base, narinfo);
+  const fileUrl = cacheFileUrl(base, narinfo);
 
-  console.log('download nar xz');
-  const narXzBuf = await fetchOkBuf(narXzUrl);
-  if (narXzBuf.byteLength !== narinfo.fileSize) throw new Error(`nar xz ${narXzBuf.byteLength} bytes, expected ${narinfo.fileSize}`);
+  console.log('download compressed nar');
+  const fileBuf = await fetchOkBuf(fileUrl);
+  if (fileBuf.byteLength !== narinfo.fileSize) throw new Error(`compressed nar ${fileBuf.byteLength} bytes, expected ${narinfo.fileSize}`);
 
-  console.log('decompress nar xz');
-  const narBuf = await xzDecompress(narXzBuf, narinfo.narSize);
-  if (narBuf.byteLength !== narinfo.narSize) throw new Error(`drv nar ${narBuf.byteLength} bytes, expected ${narinfo.narSize}`);
+  console.log('decompress nar');
+  let narBuf;
+  switch (narinfo.compression) {
+    case 'xz':
+      narBuf = await xzDecompress(fileBuf, narinfo.narSize);
+      break;
+    default:
+      throw new Error(`narinfo unsupported compression ${narinfo.compression}`);
+  }
+  if (narBuf.byteLength !== narinfo.narSize) throw new Error(`nar ${narBuf.byteLength} bytes, expected ${narinfo.narSize}`);
 
   console.log('read nar');
   return narRead(narBuf);
