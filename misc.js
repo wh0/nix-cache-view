@@ -271,9 +271,13 @@ async function cacheGetNarinfo(base, hash) {
   return narinfoParse(narinfoText);
 }
 
+function cacheFileUrl(base, narinfo) {
+  return new URL(narinfo.url, base).href;
+}
+
 async function cacheGetNar(base, narinfo) {
   if (narinfo.compression !== 'xz') throw new Error(`narinfo unsupported compression ${narinfo.compression}`);
-  const narXzUrl = new URL(narinfo.url, base).href;
+  const narXzUrl = cacheFileUrl(base, narinfo);
 
   console.log('download nar xz');
   const narXzBuf = await fetchOkBuf(narXzUrl);

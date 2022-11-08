@@ -197,7 +197,7 @@
       vPath.textContent = narinfo.path;
       const vUrl = document.getElementById('url');
       const vUrlLink = document.createElement('a');
-      vUrlLink.href = new URL(narinfo.url, cacheBase).href;
+      vUrlLink.href = cacheFileUrl(cacheBase, narinfo);
       vUrlLink.textContent = narinfo.url;
       vUrl.appendChild(vUrlLink);
       const vCompression = document.getElementById('compression');
