@@ -14,11 +14,19 @@ async function fetchOkBuf(url) {
   return await res.arrayBuffer();
 }
 
-const XZ_EMBEDDED_URL = 'https://cdn.glitch.global/48b707a2-e71d-4252-87d2-1e0ae3bbd38b/xz-embedded.wasm?v=1662960924981';
+const WASM_IMPORTS = {
+  wasi_snapshot_preview1: {
+    proc_exit(rval) {
+      throw new Error(`wasi proc_exit ${rval}`);
+    },
+  },
+};
+
+const XZ_EMBEDDED_URL = 'https://cdn.glitch.global/48b707a2-e71d-4252-87d2-1e0ae3bbd38b/xz-embedded.wasm?v=1667976284287';
 
 async function xzDecompress(inBuf, outSize) {
   console.log('fetch + instantiateStreaming');
-  const inst = (await WebAssembly.instantiateStreaming(fetch(XZ_EMBEDDED_URL))).instance;
+  const inst = (await WebAssembly.instantiateStreaming(fetch(XZ_EMBEDDED_URL), WASM_IMPORTS)).instance;
   console.log('xz_crc32_init');
   inst.exports.xz_crc32_init();
   console.log('xz_crc64_init');
