@@ -63,6 +63,36 @@ async function xzDecompress(inBuf, outSize) {
   return outBuf;
 }
 
+const BZIP2_URL = 'https://cdn.glitch.global/48b707a2-e71d-4252-87d2-1e0ae3bbd38b/bzip2.wasm?v=1667976284749';
+
+async function bzip2Decompress(inBuf, outSize) {
+  console.log('fetch + instantiateStreaming');
+  const inst = (await WebAssembly.instantiateStreaming(fetch(BZIP2_URL), WASM_IMPORTS)).instance;
+
+  const inSize = inBuf.byteLength;
+
+  const outP = inst.exports.malloc(outSize);
+  if (!outP) throw new Error(`malloc out ${outSize} null`);
+  const outSizeP = inst.exports.malloc(4 /* sizeof(unsigned int) */);
+  if (!outSizeP) throw new Error(`malloc out_size null`);
+  const inP = inst.exports.malloc(inSize);
+  if (!inP) throw new Error(`malloc in ${inSize} null`);
+
+  const outSizeBufU32A = new Uint32Array(inst.exports.memory.buffer, outSizeP, 1);
+  outSizeBufU32A[0] = outSize;
+  const inU8 = new Uint8Array(inst.exports.memory.buffer, inP, inSize);
+  inU8.set(new Uint8Array(inBuf));
+
+  console.log('BZ2_bzBuffToBuffDecompress');
+  const decompressResult = inst.exports.BZ2_bzBuffToBuffDecompress(outP, outSizeP, inP, inSize, 0, 0);
+  if (decompressResult !== 0 /* BZ_OK */) throw new Error(`BZ2_bzBuffToBuffDecompress result ${decompressResult} not ok`);
+
+  const outSizeBufU32B = new Uint32Array(inst.exports.memory.buffer, outSizeP, 1);
+  const uncompressedSize = outSizeBufU32B[0];
+  const outBuf = inst.exports.memory.buffer.slice(outP, outP + uncompressedSize);
+  return outBuf;
+}
+
 function narinfoVisitFields(narinfoText, handler) {
   const pattern = /^([^:]*): (.*)\n/mg;
   let m;
@@ -294,6 +324,9 @@ async function cacheGetNar(base, narinfo) {
   switch (narinfo.compression) {
     case 'xz':
       narBuf = await xzDecompress(fileBuf, narinfo.narSize);
+      break;
+    case 'bzip2':
+      narBuf = await bzip2Decompress(fileBuf, narinfo.narSize);
       break;
     case 'none':
       narBuf = fileBuf;
