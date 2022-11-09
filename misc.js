@@ -38,10 +38,9 @@ async function xzDecompress(inBuf, outSize) {
 
   const inSize = inBuf.byteLength;
 
-  let inP, outP;
-  inP = inst.exports.malloc(inSize);
+  const inP = inst.exports.malloc(inSize);
   if (!inP) throw new Error(`malloc in ${inSize} null`);
-  outP = inst.exports.malloc(outSize);
+  const outP = inst.exports.malloc(outSize);
   if (!outP) throw new Error(`malloc out ${outSize} null`);
 
   const inU8 = new Uint8Array(inst.exports.memory.buffer, inP, inSize);
