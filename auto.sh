@@ -9,7 +9,12 @@ cd /tmp/xz-embedded-20210201
 /tmp/unpack/opt/wasi-sdk/bin/clang \
   --sysroot=/tmp/unpack/opt/wasi-sdk/share/wasi-sysroot \
   --target=wasm32-wasi \
-  -Wl,--export-all,--no-entry \
+  -Wl,--export,malloc \
+  -Wl,--export,xz_crc32_init \
+  -Wl,--export,xz_crc64_init \
+  -Wl,--export,xz_dec_init \
+  -Wl,--export,xz_dec_run \
+  -Wl,--no-entry \
   -Ilinux/include/linux \
   -Iuserspace \
   -DXZ_USE_CRC64 \
@@ -26,7 +31,9 @@ cd /tmp/bzip2-1.0.8
 /tmp/unpack/opt/wasi-sdk/bin/clang \
   --sysroot=/tmp/unpack/opt/wasi-sdk/share/wasi-sysroot \
   --target=wasm32-wasi \
-  -Wl,--export-all,--no-entry \
+  -Wl,--export,malloc \
+  -Wl,--export,BZ2_bzBuffToBuffDecompress \
+  -Wl,--no-entry \
   -DBZ_NO_STDIO \
   -O2 \
   blocksort.c \
