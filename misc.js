@@ -22,11 +22,9 @@ const WASM_IMPORTS = {
   },
 };
 
-const XZ_EMBEDDED_URL = 'https://cdn.glitch.global/48b707a2-e71d-4252-87d2-1e0ae3bbd38b/xz-embedded.wasm?v=1667976284287';
-
 async function xzDecompress(inBuf, outSize) {
   console.log('fetch + instantiateStreaming');
-  const inst = (await WebAssembly.instantiateStreaming(fetch(XZ_EMBEDDED_URL), WASM_IMPORTS)).instance;
+  const inst = (await WebAssembly.instantiateStreaming(fetch('xz-embedded.wasm'), WASM_IMPORTS)).instance;
   console.log('xz_crc32_init');
   inst.exports.xz_crc32_init();
   console.log('xz_crc64_init');
@@ -63,11 +61,9 @@ async function xzDecompress(inBuf, outSize) {
   return outBuf;
 }
 
-const BZIP2_URL = 'https://cdn.glitch.global/48b707a2-e71d-4252-87d2-1e0ae3bbd38b/bzip2.wasm?v=1667976284749';
-
 async function bzip2Decompress(inBuf, outSize) {
   console.log('fetch + instantiateStreaming');
-  const inst = (await WebAssembly.instantiateStreaming(fetch(BZIP2_URL), WASM_IMPORTS)).instance;
+  const inst = (await WebAssembly.instantiateStreaming(fetch('bzip2.wasm'), WASM_IMPORTS)).instance;
 
   const inSize = inBuf.byteLength;
 
