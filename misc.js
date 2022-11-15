@@ -309,6 +309,14 @@ function cacheFileUrl(base, narinfo) {
 }
 
 async function cacheGetNar(base, narinfo) {
+  switch (narinfo.compression) {
+    case 'xz':
+    case 'bzip2':
+    case 'none':
+      break;
+    default:
+      throw new Error(`narinfo unsupported compression ${narinfo.compression}`);
+  }
   const fileUrl = cacheFileUrl(base, narinfo);
 
   console.log('download compressed nar');
@@ -327,8 +335,6 @@ async function cacheGetNar(base, narinfo) {
     case 'none':
       narBuf = fileBuf;
       break;
-    default:
-      throw new Error(`narinfo unsupported compression ${narinfo.compression}`);
   }
   if (narBuf.byteLength !== narinfo.narSize) throw new Error(`nar ${narBuf.byteLength} bytes, expected ${narinfo.narSize}`);
 
