@@ -10,13 +10,13 @@
   .path > dt {
     margin-top: 0.5rem;
   }
-  #root, #root ul {
+  .nar ul {
     margin: 0.5rem 0rem;
   }
-  .node.directory {
+  .directory {
     list-style-type: none;
   }
-  .node.directory > details > summary {
+  .directory_summary {
     list-style-position: outside;
   }
   .node {
@@ -92,7 +92,10 @@
   <dt>Content address</dt>
   <dd id="ca"></dd>
 </dl>
-<ul id="root"></ul>
+<dl class="nar">
+  <dt>.nar contents</dt>
+  <dd><ul id="root"></ul></dd>
+</dl>
 <dl class="drv">
   <dt>Outputs</dt>
   <dd>
@@ -317,6 +320,7 @@
               vDirectory.appendChild(vEntries);
             };
             const vSummary = document.createElement('summary');
+            vSummary.className = 'directory_summary';
             vName = document.createElement('span');
             vName.className = 'name';
             vName.textContent = name;
