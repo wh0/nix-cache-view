@@ -10,8 +10,14 @@
   .path > dt {
     margin-top: 0.5rem;
   }
-  #root ul {
+  #root, #root ul {
     margin: 0.5rem 0rem;
+  }
+  .node.directory {
+    list-style-type: none;
+  }
+  .node.directory > details > summary {
+    list-style-position: outside;
   }
   .node {
     margin: 0.5rem 0rem;
@@ -86,7 +92,7 @@
   <dt>Content address</dt>
   <dd id="ca"></dd>
 </dl>
-<div id="root"></div>
+<ul id="root"></ul>
 <dl class="drv">
   <dt>Outputs</dt>
   <dd>
@@ -242,10 +248,10 @@
       console.log(nar); // %%%
 
       const renderNode = (name, node) => {
-        let vNode, vName;
+        const vNode = document.createElement('li');
+        let vName;
         switch (node.type) {
           case 'regular':
-            vNode = document.createElement('div');
             vNode.className = 'node regular';
             vName = document.createElement('span');
             vName.className = 'name';
@@ -280,7 +286,6 @@
             vNode.appendChild(vBlob);
             break;
           case 'symlink':
-            vNode = document.createElement('div');
             vNode.className = 'node symlink';
             vName = document.createElement('span');
             vName.className = 'name';
@@ -298,21 +303,18 @@
             vNode.appendChild(vTarget);
             break;
           case 'directory':
-            vNode = document.createElement('details');
             vNode.className = 'node directory';
+            const vDirectory = document.createElement('details');
             let populated = false;
-            vNode.ontoggle = (e) => {
+            vDirectory.ontoggle = (e) => {
               if (populated) return;
               populated = true;
               vEntries = document.createElement('ul');
               vEntries.className = 'entries';
               for (const entry of node.entries) {
-                const vEntry = document.createElement('li');
-                vEntry.className = 'entry';
-                vEntry.appendChild(renderNode(entry.name, entry.node));
-                vEntries.appendChild(vEntry);
+                vEntries.appendChild(renderNode(entry.name, entry.node));
               }
-              vNode.appendChild(vEntries);
+              vDirectory.appendChild(vEntries);
             };
             const vSummary = document.createElement('summary');
             vName = document.createElement('span');
@@ -320,7 +322,8 @@
             vName.textContent = name;
             vSummary.appendChild(vName);
             vSummary.appendChild(document.createTextNode(`\xa0(${node.entries.length})`));
-            vNode.appendChild(vSummary);
+            vDirectory.appendChild(vSummary);
+            vNode.appendChild(vDirectory);
             break;
           default:
             throw new Error(`unrecognized type ${node.type}`)
