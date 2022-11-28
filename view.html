@@ -260,33 +260,44 @@
             vName.className = 'name';
             vName.textContent = name;
             vNode.appendChild(vName);
-            vNode.appendChild(document.createTextNode(' '));
             if (node.executable) {
+              vNode.appendChild(document.createTextNode(' '));
               const vExecutable = document.createElement('span');
               vExecutable.className = 'attr executable';
               vExecutable.textContent = 'executable';
               vNode.appendChild(vExecutable);
-              vNode.appendChild(document.createTextNode(' '));
             }
-            const vPrepare = document.createElement('input');
-            vPrepare.className = 'prepare';
-            vPrepare.type = 'button';
-            vPrepare.value = 'create object url';
-            vPrepare.onclick = (e) => {
-              vPrepare.disabled = true;
-              const blob = new Blob([node.contents], {type: 'application/octet-stream'});
-              const url = URL.createObjectURL(blob);
-              vBlob.href = url;
-              vBlob.hidden = false;
-            };
-            vNode.appendChild(vPrepare);
+
             vNode.appendChild(document.createTextNode(' '));
-            const vBlob = document.createElement('a');
-            vBlob.className = 'blob';
-            vBlob.download = name;
-            vBlob.hidden = true;
-            vBlob.textContent = 'contents';
-            vNode.appendChild(vBlob);
+            const renderContent = (label, type, blobAdvice) => {
+              const vContent = document.createElement('span');
+              const vPrepare = document.createElement('input');
+              vPrepare.className = 'prepare';
+              vPrepare.type = 'button';
+              vPrepare.value = `contents (${label})`;
+              vPrepare.onclick = (e) => {
+                vPrepare.hidden = true;
+                const blob = new Blob([node.contents], {type: type});
+                const url = URL.createObjectURL(blob);
+                vBlob.href = url;
+                vBlob.hidden = false;
+              };
+              vContent.appendChild(vPrepare);
+              const vBlob = document.createElement('a');
+              vBlob.className = 'blob';
+              blobAdvice(vBlob);
+              vBlob.hidden = true;
+              vBlob.textContent = `contents (${label})`;
+              vContent.appendChild(vBlob);
+              return vContent;
+            };
+            vNode.appendChild(renderContent('binary download', 'application/octet-stream', (vBlob) => {
+              vBlob.download = name;
+            }));
+            vNode.appendChild(document.createTextNode(' '));
+            vNode.appendChild(renderContent('text view', 'text/plain', (vBlob) => {
+              vBlob.target = '_blank';
+            }));
             break;
           case 'symlink':
             vNode.className = 'node symlink';
