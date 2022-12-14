@@ -323,7 +323,7 @@
             vDirectory.ontoggle = (e) => {
               if (populated) return;
               populated = true;
-              vEntries = document.createElement('ul');
+              const vEntries = document.createElement('ul');
               vEntries.className = 'entries';
               for (const entry of node.entries) {
                 vEntries.appendChild(renderNode(entry.name, entry.node));
