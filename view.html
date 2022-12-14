@@ -319,6 +319,9 @@
           case 'directory':
             vNode.className = 'node directory';
             const vDirectory = document.createElement('details');
+            if (node.entries.length <= 1) {
+              vDirectory.open = true;
+            }
             const vSummary = document.createElement('summary');
             vSummary.className = 'directory_summary';
             vName = document.createElement('span');
