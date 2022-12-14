@@ -319,17 +319,6 @@
           case 'directory':
             vNode.className = 'node directory';
             const vDirectory = document.createElement('details');
-            let populated = false;
-            vDirectory.ontoggle = (e) => {
-              if (populated) return;
-              populated = true;
-              const vEntries = document.createElement('ul');
-              vEntries.className = 'entries';
-              for (const entry of node.entries) {
-                vEntries.appendChild(renderNode(entry.name, entry.node));
-              }
-              vDirectory.appendChild(vEntries);
-            };
             const vSummary = document.createElement('summary');
             vSummary.className = 'directory_summary';
             vName = document.createElement('span');
@@ -338,6 +327,12 @@
             vSummary.appendChild(vName);
             vSummary.appendChild(document.createTextNode(`\xa0(${node.entries.length})`));
             vDirectory.appendChild(vSummary);
+            const vEntries = document.createElement('ul');
+            vEntries.className = 'entries';
+            for (const entry of node.entries) {
+              vEntries.appendChild(renderNode(entry.name, entry.node));
+            }
+            vDirectory.appendChild(vEntries);
             vNode.appendChild(vDirectory);
             break;
           default:
