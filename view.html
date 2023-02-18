@@ -23,10 +23,6 @@
     margin: 0.5rem 0rem;
     min-width: 12rem;
   }
-  .name {
-    font-family: monospace;
-    white-space: pre;
-  }
   .attr {
     display: inline-block;
     border-radius: 0.5rem;
@@ -41,11 +37,6 @@
   }
   .attr.symlink {
     background-color: #80ff00;
-  }
-  .target {
-    font-family: monospace;
-    color: #808080;
-    white-space: pre;
   }
   .drv > dt {
     margin-top: 0.5rem;
@@ -68,29 +59,29 @@
 </style>
 <dl class="path">
   <dt>.narinfo file</dt>
-  <dd id="narinfo_file"></dd>
+  <dd><span class="verbatim"><span id="narinfo_file"></span></span></dd>
   <dt>Store path</dt>
-  <dd id="path"></dd>
+  <dd><span class="verbatim"><span id="path"></span></span></dd>
   <dt>File URL</dt>
-  <dd id="url"></dd>
+  <dd><span class="verbatim"><span id="url"></span></span></dd>
   <dt>File compression</dt>
-  <dd id="compression"></dd>
+  <dd><span id="compression"></span></dd>
   <dt>File hash</dt>
-  <dd id="file_hash"></dd>
+  <dd><span class="verbatim"><span id="file_hash"></span></span></dd>
   <dt>File size</dt>
-  <dd id="file_size"></dd>
+  <dd><span id="file_size"></span></dd>
   <dt>.nar hash</dt>
-  <dd id="nar_hash"></dd>
+  <dd><span class="verbatim"><span id="nar_hash"></span></span></dd>
   <dt>.nar size</dt>
-  <dd id="nar_size"></dd>
+  <dd><span id="nar_size"></span></dd>
   <dt>References</dt>
   <dd><ul id="references"></ul></dd>
   <dt>Deriver</dt>
-  <dd id="deriver"></dd>
+  <dd><span class="verbatim"><span id="deriver"></span></span></dd>
   <dt>Signatures</dt>
   <dd><ul id="sigs"></ul></dd>
   <dt>Content address</dt>
-  <dd id="ca"></dd>
+  <dd><span class="verbatim"><span id="ca"></span></span></dd>
 </dl>
 <dl class="nar">
   <dt>.nar contents</dt>
@@ -124,9 +115,9 @@
   <dt>Input sources</dt>
   <dd><ul id="input_srcs"></ul></dd>
   <dt>Platform</dt>
-  <dd id="platform"></dd>
+  <dd><span id="platform"></span></dd>
   <dt>Builder</dt>
-  <dd id="builder"></dd>
+  <dd><span class="verbatim"><span id="builder"></span></span></dd>
   <dt>Builder arguments</dt>
   <dd><ol id="builder_args"></ol></dd>
   <dt>Builder environment</dt>
@@ -191,157 +182,176 @@
         return href;
       };
 
-      const vNarinfoFile = document.getElementById('narinfo_file');
-      const vNarinfoLink = document.createElement('a');
-      vNarinfoLink.href = `${cacheBase}${hash}.narinfo`;
-      vNarinfoLink.textContent = `${hash}.narinfo`;
-      vNarinfoFile.appendChild(vNarinfoLink);
+      const narinfoFileSpan = document.getElementById('narinfo_file');
+      const narinfoFileLink = document.createElement('a');
+      narinfoFileLink.href = `${cacheBase}${hash}.narinfo`;
+      narinfoFileLink.textContent = `${hash}.narinfo`;
+      narinfoFileSpan.appendChild(narinfoFileLink);
 
       const narinfo = await cacheGetNarinfo(cacheBase, hash);
 
       const rootPath = narinfo.path;
       const rootName = pathName(rootPath);
       document.title = rootName;
-      const vPath = document.getElementById('path');
-      vPath.textContent = narinfo.path;
-      const vUrl = document.getElementById('url');
-      const vUrlLink = document.createElement('a');
-      vUrlLink.href = cacheFileUrl(cacheBase, narinfo);
-      vUrlLink.textContent = narinfo.url;
-      vUrl.appendChild(vUrlLink);
-      const vCompression = document.getElementById('compression');
-      vCompression.textContent = narinfo.compression;
-      const vFileHash = document.getElementById('file_hash');
-      vFileHash.textContent = narinfo.fileHash;
-      const vFileSize = document.getElementById('file_size');
-      vFileSize.textContent = narinfo.fileSize;
-      const vNarHash = document.getElementById('nar_hash');
-      vNarHash.textContent = narinfo.narHash;
-      const vNarSize = document.getElementById('nar_size');
-      vNarSize.textContent = narinfo.narSize;
-      const vReferences = document.getElementById('references');
+      const pathSpan = document.getElementById('path');
+      pathSpan.textContent = narinfo.path;
+      const urlSpan = document.getElementById('url');
+      const urlLink = document.createElement('a');
+      urlLink.href = cacheFileUrl(cacheBase, narinfo);
+      urlLink.textContent = narinfo.url;
+      urlSpan.appendChild(urlLink);
+      const compressionSpan = document.getElementById('compression');
+      compressionSpan.textContent = narinfo.compression;
+      const fileHashSpan = document.getElementById('file_hash');
+      fileHashSpan.textContent = narinfo.fileHash;
+      const fileSizeSpan = document.getElementById('file_size');
+      fileSizeSpan.textContent = narinfo.fileSize;
+      const narHashSpan = document.getElementById('nar_hash');
+      narHashSpan.textContent = narinfo.narHash;
+      const narSizeSpan = document.getElementById('nar_size');
+      narSizeSpan.textContent = narinfo.narSize;
+      const referencesList = document.getElementById('references');
       for (const reference of narinfo.references) {
         const refHash = basenameHash(reference);
-        const vLi = document.createElement('li');
-        const vA = document.createElement('a');
-        vA.href = linkToPeer(refHash);
-        vA.textContent = reference;
-        vLi.appendChild(vA);
-        vReferences.appendChild(vLi);
+        const referenceItem = document.createElement('li');
+        const referenceInline = document.createElement('span');
+        referenceInline.className = 'verbatim';
+        const referenceSpan = document.createElement('span');
+        const referenceLink = document.createElement('a');
+        referenceLink.href = linkToPeer(refHash);
+        referenceLink.textContent = reference;
+        referenceSpan.appendChild(referenceLink);
+        referenceInline.appendChild(referenceSpan);
+        referenceItem.appendChild(referenceInline);
+        referencesList.appendChild(referenceItem);
       }
-      const vDeriver = document.getElementById('deriver');
+      const deriverSpan = document.getElementById('deriver');
       if (narinfo.deriver) {
         const deriverLink = document.createElement('a');
         deriverLink.href = linkToDrv(basenameHash(narinfo.deriver));
         deriverLink.textContent = narinfo.deriver;
-        vDeriver.appendChild(deriverLink);
+        deriverSpan.appendChild(deriverLink);
       }
-      const vSigs = document.getElementById('sigs');
+      const sigsList = document.getElementById('sigs');
       for (const sig of narinfo.sigs) {
-        const vLi = document.createElement('li');
-        vLi.textContent = sig;
-        vSigs.appendChild(vLi);
+        const sigItem = document.createElement('li');
+        const sigInline = document.createElement('span');
+        sigInline.className = 'verbatim';
+        const sigSpan = document.createElement('span');
+        sigSpan.textContent = sig;
+        sigInline.appendChild(sigSpan);
+        sigItem.appendChild(sigInline);
+        sigsList.appendChild(sigItem);
       }
-      const vCa = document.getElementById('ca');
+      const caSpan = document.getElementById('ca');
       if (narinfo.ca) {
-        vCa.textContent = narinfo.ca;
+        caSpan.textContent = narinfo.ca;
       }
 
       const nar = await cacheGetNar(cacheBase, narinfo);
-      console.log(nar); // %%%
 
       const renderNode = (name, node) => {
-        const vNode = document.createElement('li');
-        let vName;
+        const nodeItem = document.createElement('li');
         switch (node.type) {
-          case 'regular':
-            vNode.className = 'node regular';
-            vName = document.createElement('span');
-            vName.className = 'name';
-            vName.textContent = name;
-            vNode.appendChild(vName);
+          case 'regular': {
+            nodeItem.className = 'node regular';
+            const nameInline = document.createElement('span');
+            nameInline.className = 'verbatim';
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = name;
+            nameInline.appendChild(nameSpan);
+            nodeItem.appendChild(nameInline);
             if (node.executable) {
-              vNode.appendChild(document.createTextNode(' '));
-              const vExecutable = document.createElement('span');
-              vExecutable.className = 'attr executable';
-              vExecutable.textContent = 'executable';
-              vNode.appendChild(vExecutable);
+              nodeItem.appendChild(document.createTextNode(' '));
+              const executableSpan = document.createElement('span');
+              executableSpan.className = 'attr executable';
+              executableSpan.textContent = 'executable';
+              nodeItem.appendChild(executableSpan);
             }
 
-            vNode.appendChild(document.createTextNode(' '));
+            nodeItem.appendChild(document.createTextNode(' '));
             const renderContent = (label, type, blobAdvice) => {
-              const vContent = document.createElement('span');
-              const vPrepare = document.createElement('input');
-              vPrepare.className = 'prepare';
-              vPrepare.type = 'button';
-              vPrepare.value = `contents (${label})`;
-              vPrepare.onclick = (e) => {
-                vPrepare.hidden = true;
+              const contentSpan = document.createElement('span');
+              const prepareButton = document.createElement('input');
+              prepareButton.className = 'prepare';
+              prepareButton.type = 'button';
+              prepareButton.value = `contents (${label})`;
+              prepareButton.onclick = (e) => {
+                prepareButton.hidden = true;
                 const blob = new Blob([node.contents], {type: type});
                 const url = URL.createObjectURL(blob);
-                vBlob.href = url;
-                vBlob.hidden = false;
+                blobLink.href = url;
+                blobLink.hidden = false;
               };
-              vContent.appendChild(vPrepare);
-              const vBlob = document.createElement('a');
-              vBlob.className = 'blob';
-              blobAdvice(vBlob);
-              vBlob.hidden = true;
-              vBlob.textContent = `contents (${label})`;
-              vContent.appendChild(vBlob);
-              return vContent;
+              contentSpan.appendChild(prepareButton);
+              const blobLink = document.createElement('a');
+              blobLink.className = 'blob';
+              blobAdvice(blobLink);
+              blobLink.hidden = true;
+              blobLink.textContent = `contents (${label})`;
+              contentSpan.appendChild(blobLink);
+              return contentSpan;
             };
-            vNode.appendChild(renderContent('binary download', 'application/octet-stream', (vBlob) => {
-              vBlob.download = name;
+            nodeItem.appendChild(renderContent('binary download', 'application/octet-stream', (blobLink) => {
+              blobLink.download = name;
             }));
-            vNode.appendChild(document.createTextNode(' '));
-            vNode.appendChild(renderContent('text view', 'text/plain', (vBlob) => {
-              vBlob.target = '_blank';
+            nodeItem.appendChild(document.createTextNode(' '));
+            nodeItem.appendChild(renderContent('text view', 'text/plain', (blobLink) => {
+              blobLink.target = '_blank';
             }));
             break;
-          case 'symlink':
-            vNode.className = 'node symlink';
-            vName = document.createElement('span');
-            vName.className = 'name';
-            vName.textContent = name;
-            vNode.appendChild(vName);
-            vNode.appendChild(document.createTextNode(' '));
-            const vSymlink = document.createElement('span');
-            vSymlink.className = 'attr symlink';
-            vSymlink.textContent = 'symlink';
-            vNode.appendChild(vSymlink);
-            vNode.appendChild(document.createTextNode(' '));
-            const vTarget = document.createElement('span');
-            vTarget.className = 'target';
-            vTarget.textContent = node.target;
-            vNode.appendChild(vTarget);
+          }
+          case 'symlink': {
+            nodeItem.className = 'node symlink';
+            const nameInline = document.createElement('span');
+            nameInline.className = 'verbatim';
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = name;
+            nameInline.appendChild(nameSpan);
+            nodeItem.appendChild(nameInline);
+            nodeItem.appendChild(document.createTextNode(' '));
+            const symlinkSpan = document.createElement('span');
+            symlinkSpan.className = 'attr symlink';
+            symlinkSpan.textContent = 'symlink';
+            nodeItem.appendChild(symlinkSpan);
+            nodeItem.appendChild(document.createTextNode(' '));
+            const targetInline = document.createElement('span');
+            targetInline.className = 'verbatim';
+            const targetSpan = document.createElement('span');
+            targetSpan.textContent = node.target;
+            targetInline.appendChild(targetSpan);
+            nodeItem.appendChild(targetInline);
             break;
-          case 'directory':
-            vNode.className = 'node directory';
-            const vDirectory = document.createElement('details');
+          }
+          case 'directory': {
+            nodeItem.className = 'node directory';
+            const directoryDetails = document.createElement('details');
             if (node.entries.length <= 1) {
-              vDirectory.open = true;
+              directoryDetails.open = true;
             }
-            const vSummary = document.createElement('summary');
-            vSummary.className = 'directory_summary';
-            vName = document.createElement('span');
-            vName.className = 'name';
-            vName.textContent = name;
-            vSummary.appendChild(vName);
-            vSummary.appendChild(document.createTextNode(`\xa0(${node.entries.length})`));
-            vDirectory.appendChild(vSummary);
-            const vEntries = document.createElement('ul');
-            vEntries.className = 'entries';
+            const directorySummary = document.createElement('summary');
+            directorySummary.className = 'directory_summary';
+            const nameInline = document.createElement('span');
+            nameInline.className = 'verbatim';
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = name;
+            nameInline.appendChild(nameSpan);
+            directorySummary.appendChild(nameInline);
+            directorySummary.appendChild(document.createTextNode(`\xa0(${node.entries.length})`));
+            directoryDetails.appendChild(directorySummary);
+            const entriesList = document.createElement('ul');
+            entriesList.className = 'entries';
             for (const entry of node.entries) {
-              vEntries.appendChild(renderNode(entry.name, entry.node));
+              entriesList.appendChild(renderNode(entry.name, entry.node));
             }
-            vDirectory.appendChild(vEntries);
-            vNode.appendChild(vDirectory);
+            directoryDetails.appendChild(entriesList);
+            nodeItem.appendChild(directoryDetails);
             break;
+          }
           default:
             throw new Error(`unrecognized type ${node.type}`)
         }
-        return vNode;
+        return nodeItem;
       };
       document.getElementById('root').appendChild(renderNode(rootName, nar.root));
 
@@ -349,50 +359,71 @@
         const drv = drvParse(new TextDecoder().decode(nar.root.contents));
 
         const [outputs, inputDrvs, inputSrcs, platform, builder, builderArgs, env] = drv;
-        const vOutputs = document.getElementById('outputs');
-        const vOutputsBody = vOutputs.createTBody();
+        const outputsTable = document.getElementById('outputs');
+        const outputsBody = outputsTable.createTBody();
         for (const [name, path, narHashAlgorithm, narHash] of outputs) {
-          const row = vOutputsBody.insertRow(-1);
-          row.insertCell(-1).textContent = name;
-          const pathCell = row.insertCell(-1);
+          const outputRow = outputsBody.insertRow(-1);
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = name;
+          outputRow.insertCell(-1).appendChild(nameSpan);
+          const pathInline = document.createElement('span');
+          pathInline.className = 'verbatim';
+          const pathSpan = document.createElement('span');
           const pathLink = document.createElement('a');
           const outputHash = pathHash(path);
           pathLink.href = linkToOut(outputHash);
           pathLink.textContent = path;
-          pathCell.appendChild(pathLink);
-          row.insertCell(-1).textContent = narHashAlgorithm;
-          row.insertCell(-1).textContent = narHash;
+          pathSpan.appendChild(pathLink);
+          pathInline.appendChild(pathSpan);
+          outputRow.insertCell(-1).appendChild(pathInline);
+          const narHashAlgorithmSpan = document.createElement('span');
+          narHashAlgorithmSpan.textContent = narHashAlgorithm;
+          outputRow.insertCell(-1).appendChild(narHashAlgorithmSpan);
+          const narHashSpan = document.createElement('span');
+          narHashSpan.textContent = narHash;
+          outputRow.insertCell(-1).appendChild(narHashSpan);
         }
-        const vInputDrvs = document.getElementById('input_drvs');
-        const vInputDrvsBody = vInputDrvs.createTBody();
+        const inputDrvsTable = document.getElementById('input_drvs');
+        const inputDrvsBody = inputDrvsTable.createTBody();
         for (const [drvPath, drvOutputs] of inputDrvs) {
-          const row = vInputDrvsBody.insertRow(-1);
-          const drvCell = row.insertCell(-1);
+          const inputDrvRow = inputDrvsBody.insertRow(-1);
+          const drvInline = document.createElement('span');
+          drvInline.className = 'verbatim';
+          const drvSpan = document.createElement('span');
           const drvLink = document.createElement('a');
           const drvHash = pathHash(drvPath);
           drvLink.href = linkToDrv(drvHash);
           drvLink.textContent = drvPath;
-          drvCell.appendChild(drvLink);
-          row.insertCell(-1).textContent = drvOutputs.join(', ');
+          drvSpan.appendChild(drvLink);
+          drvInline.appendChild(drvSpan);
+          inputDrvRow.insertCell(-1).appendChild(drvInline);
+          const drvOutputsSpan = document.createElement('span');
+          drvOutputsSpan.textContent = drvOutputs.join(', ');
+          inputDrvRow.insertCell(-1).appendChild(drvOutputsSpan);
         }
         const inputSrcHashes = {};
-        const vInputSrcs = document.getElementById('input_srcs');
+        const inputSrcsList = document.getElementById('input_srcs');
         for (const inputSrc of inputSrcs) {
-          const item = document.createElement('li');
+          const inputSrcItem = document.createElement('li');
+          const inputSrcInline = document.createElement('span');
+          inputSrcInline.className = 'verbatim';
+          const inputSrcSpan = document.createElement('span');
           const inputSrcLink = document.createElement('a');
           const inputSrcHash = pathHash(inputSrc);
           inputSrcHashes[inputSrcHash] = true;
           inputSrcLink.href = linkToPeer(inputSrcHash);
           inputSrcLink.textContent = inputSrc;
-          item.appendChild(inputSrcLink);
-          vInputSrcs.appendChild(item);
+          inputSrcSpan.appendChild(inputSrcLink);
+          inputSrcInline.appendChild(inputSrcSpan);
+          inputSrcItem.appendChild(inputSrcInline);
+          inputSrcsList.appendChild(inputSrcItem);
         }
         document.getElementById('platform').textContent = platform;
         const maybeLinkifySingle = (path) => {
-          const parts = pathMatch(path);
-          if (!parts) return null;
+          const match = pathMatch(path);
+          if (!match) return null;
           const link = document.createElement('a');
-          const linkHash = parts[1];
+          const linkHash = pathMatchHash(match);
           const isInputSrc = linkHash in inputSrcHashes;
           link.href = isInputSrc ? linkToPeer(linkHash) : linkToOut(linkHash);
           link.textContent = path;
@@ -411,27 +442,33 @@
           });
         };
         document.getElementById('builder').appendChild(linkifySingle(builder));
-        const vBuilderArgs = document.getElementById('builder_args');
+        const builderArgsList = document.getElementById('builder_args');
         for (const builderArg of builderArgs) {
-          const item = document.createElement('li');
-          const vBuilderArg = document.createElement('span');
-          vBuilderArg.className = 'verbatim';
-          vBuilderArg.appendChild(linkify(builderArg));
-          item.appendChild(vBuilderArg);
-          vBuilderArgs.appendChild(item);
+          const builderArgItem = document.createElement('li');
+          const builderArgInline = document.createElement('span');
+          builderArgInline.className = 'verbatim';
+          const builderArgSpan = document.createElement('span');
+          builderArgSpan.appendChild(linkify(builderArg));
+          builderArgInline.appendChild(builderArgSpan);
+          builderArgItem.appendChild(builderArgInline);
+          builderArgsList.appendChild(builderArgItem);
         }
-        const vEnv = document.getElementById('env');
-        const vEnvBody = vEnv.createTBody();
+        const envTable = document.getElementById('env');
+        const envBody = envTable.createTBody();
         for (const [name, value] of env) {
-          const row = vEnvBody.insertRow(-1);
-          const vName = document.createElement('span');
-          vName.className = 'verbatim';
-          vName.textContent = name;
-          row.insertCell(-1).appendChild(vName);
-          const vValue = document.createElement('span');
-          vValue.className = 'verbatim';
-          vValue.appendChild(linkify(value))
-          row.insertCell(-1).appendChild(vValue);
+          const varRow = envBody.insertRow(-1);
+          const nameInline = document.createElement('span');
+          nameInline.className = 'verbatim';
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = name;
+          nameInline.appendChild(nameSpan);
+          varRow.insertCell(-1).appendChild(nameInline);
+          const valueInline = document.createElement('span');
+          valueInline.className = 'verbatim';
+          const valueSpan = document.createElement('span');
+          valueSpan.appendChild(linkify(value))
+          valueInline.appendChild(valueSpan);
+          varRow.insertCell(-1).appendChild(valueInline);
         }
       }
     } catch (e) {

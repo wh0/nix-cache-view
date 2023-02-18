@@ -49,11 +49,11 @@
   document.getElementById('presets').oninput = (e) => {
     if (e.target.selectedIndex === 0) return;
     document.forms.omni.elements.cache_base.value = e.target.value;
-    const vPreset = e.target.selectedOptions[0];
-    document.forms.omni.elements.cache_base_drv.value = vPreset.dataset.cacheBaseDrv || '';
-    document.forms.omni.elements.cache_base_out.value = vPreset.dataset.cacheBaseOut || '';
+    const presetOption = e.target.selectedOptions[0];
+    document.forms.omni.elements.cache_base_drv.value = presetOption.dataset.cacheBaseDrv || '';
+    document.forms.omni.elements.cache_base_out.value = presetOption.dataset.cacheBaseOut || '';
     if (!hashReallyDirty) {
-      document.forms.omni.elements.hash.value = vPreset.dataset.sampleHash || '';
+      document.forms.omni.elements.hash.value = presetOption.dataset.sampleHash || '';
     }
   };
   document.forms.omni.elements.cache_base.oninput = (e) => {
@@ -65,8 +65,7 @@
   document.forms.omni.elements.cache_base_out.oninput = (e) => {
     document.getElementById('presets').selectedIndex = 0;
   };
-  document.forms.omni.elements.hash.oninput = (e) => {
-    console.log('hash really dirty');
+  document.forms.omni.elements.hash.onchange = (e) => {
     hashReallyDirty = true;
   };
   window.onpagehide = (e) => {

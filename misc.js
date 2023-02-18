@@ -161,12 +161,20 @@ function pathMatch(path) {
   return PATH_PATTERN.exec(path);
 }
 
+function pathMatchHash(match) {
+  return match[1];
+}
+
+function pathMatchName(match) {
+  return match[2];
+}
+
 function pathHash(path) {
-  return pathMatch(path)[1];
+  return pathMatchHash(pathMatch(path));
 }
 
 function pathName(path) {
-  return pathMatch(path)[2];
+  return pathMatchName(pathMatch(path));
 }
 
 function basenameHash(basename) {
