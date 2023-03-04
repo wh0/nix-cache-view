@@ -200,7 +200,7 @@ function narReadString(reader) {
 }
 
 function narExpectString(reader, expected) {
-  const s = narReadString(reader, expected);
+  const s = narReadString(reader);
   if (s !== expected) throw new Error(`unexpected '${s}', expected '${expected}'`);
 }
 
