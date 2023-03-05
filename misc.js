@@ -169,6 +169,22 @@ function pathMatchName(match) {
   return match[2];
 }
 
+function pathMatchHashStart(match) {
+  return match.index + 1;
+}
+
+function pathMatchHashEnd(match) {
+  return pathMatchHashStart(match) + match[1].length;
+}
+
+function pathMatchNameStart(match) {
+  return pathMatchHashEnd(match) + 1;
+}
+
+function pathMatchNameEnd(match) {
+  return pathMatchNameStart(match) + match[2].length;
+}
+
 function pathHash(path) {
   return pathMatchHash(pathMatch(path));
 }
@@ -183,6 +199,22 @@ function basenameHash(basename) {
 
 function basenameName(basename) {
   return basename.slice(33);
+}
+
+function basenameHashStart(basename) {
+  return 0;
+}
+
+function basenameHashEnd(basename) {
+  return 32;
+}
+
+function basenameNameStart(basename) {
+  return 33;
+}
+
+function basenameNameEnd(basename) {
+  return basename.length;
 }
 
 function nameIsDerivation(name) {

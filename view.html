@@ -56,6 +56,9 @@
     font-family: monospace;
     white-space: pre-wrap;
   }
+  .prefix {
+    opacity: 50%;
+  }
 </style>
 <dl class="path">
   <dt>.narinfo file</dt>
@@ -190,11 +193,21 @@
 
       const narinfo = await cacheGetNarinfo(cacheBase, hash);
 
+      const renderPrefix = (s, prefixLength) => {
+        const frag = document.createDocumentFragment();
+        const prefixInline = document.createElement('span');
+        prefixInline.className = 'prefix';
+        prefixInline.textContent = s.slice(0, prefixLength);
+        frag.appendChild(prefixInline);
+        frag.appendChild(document.createTextNode(s.slice(prefixLength)));
+        return frag;
+      };
       const rootPath = narinfo.path;
-      const rootName = pathName(rootPath);
+      const rootMatch = pathMatch(rootPath);
+      const rootName = pathMatchName(rootMatch);
       document.title = rootName;
       const pathSpan = document.getElementById('path');
-      pathSpan.textContent = narinfo.path;
+      pathSpan.appendChild(renderPrefix(rootPath, pathMatchNameStart(rootMatch)));
       const urlSpan = document.getElementById('url');
       const urlLink = document.createElement('a');
       urlLink.href = cacheFileUrl(cacheBase, narinfo);
@@ -212,14 +225,14 @@
       narSizeSpan.textContent = narinfo.narSize;
       const referencesList = document.getElementById('references');
       for (const reference of narinfo.references) {
-        const refHash = basenameHash(reference);
+        const nameStart = basenameNameStart(reference);
         const referenceItem = document.createElement('li');
         const referenceInline = document.createElement('span');
         referenceInline.className = 'verbatim';
         const referenceSpan = document.createElement('span');
         const referenceLink = document.createElement('a');
-        referenceLink.href = linkToPeer(refHash);
-        referenceLink.textContent = reference;
+        referenceLink.href = linkToPeer(basenameHash(reference));
+        referenceLink.appendChild(renderPrefix(reference, basenameNameStart(reference)));
         referenceSpan.appendChild(referenceLink);
         referenceInline.appendChild(referenceSpan);
         referenceItem.appendChild(referenceInline);
@@ -362,6 +375,7 @@
         const outputsTable = document.getElementById('outputs');
         const outputsBody = outputsTable.createTBody();
         for (const [name, path, narHashAlgorithm, narHash] of outputs) {
+          const outputMatch = pathMatch(path);
           const outputRow = outputsBody.insertRow(-1);
           const nameSpan = document.createElement('span');
           nameSpan.textContent = name;
@@ -370,9 +384,8 @@
           pathInline.className = 'verbatim';
           const pathSpan = document.createElement('span');
           const pathLink = document.createElement('a');
-          const outputHash = pathHash(path);
-          pathLink.href = linkToOut(outputHash);
-          pathLink.textContent = path;
+          pathLink.href = linkToOut(pathMatchHash(outputMatch));
+          pathLink.appendChild(renderPrefix(path, pathMatchNameStart(outputMatch)));
           pathSpan.appendChild(pathLink);
           pathInline.appendChild(pathSpan);
           outputRow.insertCell(-1).appendChild(pathInline);
@@ -386,14 +399,14 @@
         const inputDrvsTable = document.getElementById('input_drvs');
         const inputDrvsBody = inputDrvsTable.createTBody();
         for (const [drvPath, drvOutputs] of inputDrvs) {
+          const inputDrvMatch = pathMatch(drvPath);
           const inputDrvRow = inputDrvsBody.insertRow(-1);
           const drvInline = document.createElement('span');
           drvInline.className = 'verbatim';
           const drvSpan = document.createElement('span');
           const drvLink = document.createElement('a');
-          const drvHash = pathHash(drvPath);
-          drvLink.href = linkToDrv(drvHash);
-          drvLink.textContent = drvPath;
+          drvLink.href = linkToDrv(pathMatchHash(inputDrvMatch));
+          drvLink.appendChild(renderPrefix(drvPath, pathMatchNameStart(inputDrvMatch)));
           drvSpan.appendChild(drvLink);
           drvInline.appendChild(drvSpan);
           inputDrvRow.insertCell(-1).appendChild(drvInline);
@@ -404,15 +417,16 @@
         const inputSrcHashes = {};
         const inputSrcsList = document.getElementById('input_srcs');
         for (const inputSrc of inputSrcs) {
+          const inputSrcMatch = pathMatch(inputSrc);
+          const inputSrcHash = pathMatchHash(inputSrcMatch);
+          inputSrcHashes[inputSrcHash] = true;
           const inputSrcItem = document.createElement('li');
           const inputSrcInline = document.createElement('span');
           inputSrcInline.className = 'verbatim';
           const inputSrcSpan = document.createElement('span');
           const inputSrcLink = document.createElement('a');
-          const inputSrcHash = pathHash(inputSrc);
-          inputSrcHashes[inputSrcHash] = true;
           inputSrcLink.href = linkToPeer(inputSrcHash);
-          inputSrcLink.textContent = inputSrc;
+          inputSrcLink.appendChild(renderPrefix(inputSrc, pathMatchNameStart(inputSrcMatch)));
           inputSrcSpan.appendChild(inputSrcLink);
           inputSrcInline.appendChild(inputSrcSpan);
           inputSrcItem.appendChild(inputSrcInline);
@@ -422,11 +436,11 @@
         const maybeLinkifySingle = (path) => {
           const match = pathMatch(path);
           if (!match) return null;
-          const link = document.createElement('a');
           const linkHash = pathMatchHash(match);
+          const link = document.createElement('a');
           const isInputSrc = linkHash in inputSrcHashes;
           link.href = isInputSrc ? linkToPeer(linkHash) : linkToOut(linkHash);
-          link.textContent = path;
+          link.appendChild(renderPrefix(path, pathMatchNameStart(match)));
           return link;
         };
         const linkifySingle = (path) => {
