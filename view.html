@@ -263,16 +263,28 @@
 
       const nar = await cacheGetNar(cacheBase, narinfo);
 
-      const renderNode = (name, node) => {
-        const nodeItem = document.createElement('li');
+      const renderNode = (names, node) => {
+        const renderNames = (names) => {
+          const namesSpan = document.createElement('span');
+          let slashBefore = false;
+          for (const name of names) {
+            if (slashBefore) {
+              namesSpan.appendChild(document.createTextNode('/'));
+            }
+            slashBefore = true;
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = name;
+            namesSpan.appendChild(nameSpan);
+          }
+          return namesSpan;
+        }
         switch (node.type) {
           case 'regular': {
+            const nodeItem = document.createElement('li');
             nodeItem.className = 'node regular';
             const nameInline = document.createElement('span');
             nameInline.className = 'verbatim';
-            const nameSpan = document.createElement('span');
-            nameSpan.textContent = name;
-            nameInline.appendChild(nameSpan);
+            nameInline.appendChild(renderNames(names));
             nodeItem.appendChild(nameInline);
             if (node.executable) {
               nodeItem.appendChild(document.createTextNode(' '));
@@ -312,15 +324,14 @@
             nodeItem.appendChild(renderContent('text view', 'text/plain', (blobLink) => {
               blobLink.target = '_blank';
             }));
-            break;
+            return nodeItem;
           }
           case 'symlink': {
+            const nodeItem = document.createElement('li');
             nodeItem.className = 'node symlink';
             const nameInline = document.createElement('span');
             nameInline.className = 'verbatim';
-            const nameSpan = document.createElement('span');
-            nameSpan.textContent = name;
-            nameInline.appendChild(nameSpan);
+            nameInline.appendChild(renderNames(names));
             nodeItem.appendChild(nameInline);
             nodeItem.appendChild(document.createTextNode(' '));
             const symlinkSpan = document.createElement('span');
@@ -334,39 +345,39 @@
             targetSpan.textContent = node.target;
             targetInline.appendChild(targetSpan);
             nodeItem.appendChild(targetInline);
-            break;
+            return nodeItem;
           }
           case 'directory': {
+            if (node.entries.length === 1) {
+              const entry = node.entries[0];
+              names.push(entry.name);
+              return renderNode(names, entry.node);
+            }
+            const nodeItem = document.createElement('li');
             nodeItem.className = 'node directory';
             const directoryDetails = document.createElement('details');
-            if (node.entries.length <= 1) {
-              directoryDetails.open = true;
-            }
             const directorySummary = document.createElement('summary');
             directorySummary.className = 'directory_summary';
             const nameInline = document.createElement('span');
             nameInline.className = 'verbatim';
-            const nameSpan = document.createElement('span');
-            nameSpan.textContent = name;
-            nameInline.appendChild(nameSpan);
+            nameInline.appendChild(renderNames(names));
             directorySummary.appendChild(nameInline);
             directorySummary.appendChild(document.createTextNode(`\xa0(${node.entries.length})`));
             directoryDetails.appendChild(directorySummary);
             const entriesList = document.createElement('ul');
             entriesList.className = 'entries';
             for (const entry of node.entries) {
-              entriesList.appendChild(renderNode(entry.name, entry.node));
+              entriesList.appendChild(renderNode([entry.name], entry.node));
             }
             directoryDetails.appendChild(entriesList);
             nodeItem.appendChild(directoryDetails);
-            break;
+            return nodeItem;
           }
           default:
             throw new Error(`unrecognized type ${node.type}`)
         }
-        return nodeItem;
       };
-      document.getElementById('root').appendChild(renderNode(rootName, nar.root));
+      document.getElementById('root').appendChild(renderNode([rootName], nar.root));
 
       if (nameIsDerivation(rootName)) {
         const drv = drvParse(new TextDecoder().decode(nar.root.contents));
