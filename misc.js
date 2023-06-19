@@ -339,13 +339,16 @@ function drvParse(drvText) {
 }
 
 async function cacheGetNarinfo(base, hash) {
-  const narinfoUrl = `${base}${hash}.narinfo`;
+  const narinfoUrl = `${base}/${hash}.narinfo`;
   const narinfoText = await fetchOkText(narinfoUrl);
   return narinfoParse(narinfoText);
 }
 
 function cacheFileUrl(base, narinfo) {
-  return new URL(narinfo.url, base).href;
+  if (/\w+:\/\//.test(narinfo.url)) {
+    return narinfo.url;
+  }
+  return `${base}/${narinfo.url}`;
 }
 
 async function cacheGetNar(base, narinfo) {
