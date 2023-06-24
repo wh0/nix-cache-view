@@ -242,7 +242,7 @@
       if (narinfo.deriver) {
         const deriverLink = document.createElement('a');
         deriverLink.href = linkToDrv(basenameHash(narinfo.deriver));
-        deriverLink.textContent = narinfo.deriver;
+        deriverLink.appendChild(renderPrefix(narinfo.deriver, basenameNameStart(narinfo.deriver)));
         deriverSpan.appendChild(deriverLink);
       }
       const sigsList = document.getElementById('sigs');
