@@ -58,12 +58,12 @@
   }
 </style>
 <p><span id="hash_message"></span></p>
-<dl class="hash">
+<dl id="hash_section" hidden>
   <dt>.narinfo file</dt>
   <dd><span class="verbatim"><span id="narinfo_file"></span></span></dd>
 </dl>
 <p><span id="narinfo_message"></span></p>
-<dl class="narinfo">
+<dl id="narinfo_section" hidden>
   <dt>Store path</dt>
   <dd><span class="verbatim"><span id="path"></span></span></dd>
   <dt>File URL</dt>
@@ -88,12 +88,12 @@
   <dd><span class="verbatim"><span id="ca"></span></span></dd>
 </dl>
 <p><span id="nar_message"></span></p>
-<dl class="nar">
+<dl id="nar_section" hidden>
   <dt>.nar contents</dt>
   <dd><ul id="root"></ul></dd>
 </dl>
 <p><span id="drv_message"></span></p>
-<dl class="drv">
+<dl id="drv_section" hidden>
   <dt>Outputs</dt>
   <dd>
     <table id="outputs">
@@ -195,6 +195,7 @@
       narinfoFileLink.href = `${cacheBase}/${hash}.narinfo`;
       narinfoFileLink.textContent = `${hash}.narinfo`;
       narinfoFileSpan.appendChild(narinfoFileLink);
+      document.getElementById('hash_section').hidden = false;
 
       messageSpan = document.getElementById('narinfo_message');
       messageSpan.textContent = 'Loading .narinfo';
@@ -268,6 +269,7 @@
       if (narinfo.ca) {
         caSpan.textContent = narinfo.ca;
       }
+      document.getElementById('narinfo_section').hidden = false;
 
       messageSpan = document.getElementById('nar_message');
       cacheCheckSupportedCompression(narinfo);
@@ -396,6 +398,7 @@
         }
       };
       document.getElementById('root').appendChild(renderNode([rootName], nar.root));
+      document.getElementById('nar_section').hidden = false;
 
       if (nameIsDerivation(rootName)) {
         messageSpan = document.getElementById('nar_message');
@@ -514,6 +517,7 @@
           valueInline.appendChild(valueSpan);
           varRow.insertCell(-1).appendChild(valueInline);
         }
+        document.getElementById('drv_section').hidden = false;
       }
     } catch (e) {
       console.error(e);
