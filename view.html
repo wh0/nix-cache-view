@@ -261,7 +261,16 @@
         caSpan.textContent = narinfo.ca;
       }
 
-      const nar = await cacheGetNar(cacheBase, narinfo);
+      cacheCheckSupportedCompression(narinfo);
+
+      console.log('download compressed nar');
+      const fileBuf = await cacheGetFile(cacheBase, narinfo);
+
+      console.log('decompress nar');
+      const narBuf = await cacheDecompressFile(fileBuf, narinfo);
+
+      console.log('read nar');
+      const nar = await narRead(narBuf);
 
       const renderNode = (names, node) => {
         const renderNames = (names) => {
