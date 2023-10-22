@@ -89,6 +89,12 @@ async function bzip2Decompress(inBuf, outSize) {
   return outBuf;
 }
 
+const DECOMPRESS_METHODS = {
+  xz: xzDecompress,
+  bzip2: bzip2Decompress,
+  none: (inBuf, outSize) => inBuf,
+};
+
 function narinfoVisitFields(narinfoText, handler) {
   const pattern = /^([^:]*): (.*)\n/mg;
   let m;
@@ -351,38 +357,21 @@ function cacheFileUrl(base, narinfo) {
   return `${base}/${narinfo.url}`;
 }
 
-async function cacheGetNar(base, narinfo) {
-  switch (narinfo.compression) {
-    case 'xz':
-    case 'bzip2':
-    case 'none':
-      break;
-    default:
-      throw new Error(`narinfo unsupported compression ${narinfo.compression}`);
-  }
-  const fileUrl = cacheFileUrl(base, narinfo);
+function cacheCheckSupportedCompression(narinfo) {
+  if (!narinfo.compression in DECOMPRESS_METHODS) throw new Error(`narinfo unsupported compression ${narinfo.compression}`);
+}
 
-  console.log('download compressed nar');
+async function cacheGetFile(base, narinfo) {
+  const fileUrl = cacheFileUrl(base, narinfo);
   const fileBuf = await fetchOkBuf(fileUrl);
   if (fileBuf.byteLength !== narinfo.fileSize) throw new Error(`compressed nar ${fileBuf.byteLength} bytes, expected ${narinfo.fileSize}`);
+  return fileBuf;
+}
 
-  console.log('decompress nar');
-  let narBuf;
-  switch (narinfo.compression) {
-    case 'xz':
-      narBuf = await xzDecompress(fileBuf, narinfo.narSize);
-      break;
-    case 'bzip2':
-      narBuf = await bzip2Decompress(fileBuf, narinfo.narSize);
-      break;
-    case 'none':
-      narBuf = fileBuf;
-      break;
-  }
+async function cacheDecompressFile(fileBuf, narinfo) {
+  const narBuf = await DECOMPRESS_METHODS[narinfo.compression](fileBuf, narinfo.narSize);
   if (narBuf.byteLength !== narinfo.narSize) throw new Error(`nar ${narBuf.byteLength} bytes, expected ${narinfo.narSize}`);
-
-  console.log('read nar');
-  return narRead(narBuf);
+  return narBuf;
 }
 
 function dbParse(dumpText) {
