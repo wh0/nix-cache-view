@@ -60,10 +60,12 @@
     opacity: 50%;
   }
 </style>
+<p><span id="hash_message"></span></p>
 <dl class="hash">
   <dt>.narinfo file</dt>
   <dd><span class="verbatim"><span id="narinfo_file"></span></span></dd>
 </dl>
+<p><span id="narinfo_message"></span></p>
 <dl class="narinfo">
   <dt>Store path</dt>
   <dd><span class="verbatim"><span id="path"></span></span></dd>
@@ -88,10 +90,12 @@
   <dt>Content address</dt>
   <dd><span class="verbatim"><span id="ca"></span></span></dd>
 </dl>
+<p><span id="nar_message"></span></p>
 <dl class="nar">
   <dt>.nar contents</dt>
   <dd><ul id="root"></ul></dd>
 </dl>
+<p><span id="drv_message"></span></p>
 <dl class="drv">
   <dt>Outputs</dt>
   <dd>
@@ -140,7 +144,9 @@
 <script src="misc.js"></script>
 <script>
   (async () => {
+    let messageSpan = null;
     try {
+      messageSpan = document.getElementById('hash_message');
       const options = new URL(window.location).searchParams;
       const cacheBase = options.get('cache_base');
       const cacheBaseDrv = options.get('cache_base_drv');
@@ -193,7 +199,10 @@
       narinfoFileLink.textContent = `${hash}.narinfo`;
       narinfoFileSpan.appendChild(narinfoFileLink);
 
+      messageSpan = document.getElementById('narinfo_message');
+      messageSpan.textContent = 'Loading .narinfo';
       const narinfo = await cacheGetNarinfo(cacheBase, hash);
+      messageSpan.textContent = '';
 
       const renderPrefix = (s, prefixLength) => {
         const frag = document.createDocumentFragment();
@@ -263,15 +272,16 @@
         caSpan.textContent = narinfo.ca;
       }
 
+      messageSpan = document.getElementById('nar_message');
       cacheCheckSupportedCompression(narinfo);
 
-      console.log('download compressed nar');
+      messageSpan.textContent = 'Downloading compressed .nar';
       const fileBuf = await cacheGetFile(cacheBase, narinfo);
 
-      console.log('decompress nar');
+      messageSpan.textContent = 'Decompressing .nar';
       const narBuf = await cacheDecompressFile(fileBuf, narinfo);
+      messageSpan.textContent = '';
 
-      console.log('read nar');
       const nar = await narRead(narBuf);
 
       const renderNode = (names, node) => {
@@ -391,6 +401,7 @@
       document.getElementById('root').appendChild(renderNode([rootName], nar.root));
 
       if (nameIsDerivation(rootName)) {
+        messageSpan = document.getElementById('nar_message');
         const drv = drvParse(new TextDecoder().decode(nar.root.contents));
 
         const [outputs, inputDrvs, inputSrcs, platform, builder, builderArgs, env] = drv;
@@ -509,6 +520,9 @@
       }
     } catch (e) {
       console.error(e);
+      if (messageSpan) {
+        messageSpan.textContent = '' + e;
+      }
     }
   })();
 </script>
