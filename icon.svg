@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="256" height="256">
   <g transform="translate(0, 256) rotate(-45) scale(3)">
-    <path fill="#f3f3ea" d="m 0 0 h 8 l 48 16 h -8 z" />
-    <path fill="#b5b2ab" d="m 8 0 h 48 l 4 2 h 4 v 12 h -4 l-4 2 z" />
-    <path fill="#f3ebd4" d="m 62 16 v -16 l 8 -2 v 20 z" />
-    <path fill="#aeab9c" d="m 62 5 v -4 l 8 -1.75 v 5 z" />
-    <path fill="#fffdf4" d="m 62 4 v -2 l 8 -1.5 v 2.5 z" />
-    <path fill="#3c3732" d="m 62 11 v -3 h 8 v 3.75 z" />
-    <path fill="#e0cb86" d="m 70 20 v -24 h 14 v 24 z" />
+    <path fill="#f3f3ea" d="m 0 0 h 8 l 36 4 l 12 12 h -8 z" />
+    <path fill="#b5b2ab" d="m 8 0 h 48 l 4 2 h 6 v 12 h -6 l-4 2 z" />
+    <path fill="#f3ebd4" d="m 62 16 v -5 l 1.5 -1.5 l -1.5 -1.5 v -3 l 2 -2 l -2 -2 v -1 l 8 -2 h 7 v 20 h -7 z" />
+    <path fill="#aeab9c" d="m 62 5 v -1 l 1 -1 l -1 -1 v -1 l 8 -1.75 h 7 v 5 h -7 z" />
+    <path fill="#fffdf4" d="m 62 4 v -2 l 8 -1.5 h 7 v 2.5 h -7 z" />
+    <path fill="#3c3732" d="m 62 11 v -3 h 15 v 3.75 h -7 z" />
+    <path fill="#e0cb86" d="m 70 20 v -24 h 34 v 24 z" />
     <path fill="#fefce9" d="m 70 0 h 2 v -1 z m 4 0 h 2 v -1 z m 4 0 h 2 v -1 z m 4 0 h 2 v -1 z m -10 1 h 2 v -1 z m 4 0 h 2 v -1 z m 4 0 h 2 v -1 z m -10 1 h 2 v -1 z m 4 0 h 2 v -1 z m 4 0 h 2 v -1 z m 4 0 h 2 v -1 z m -12 8 h 2 v -1 z m 4 0 h 2 v -1 z m 4 0 h 2 v -1 z m 4 0 h 2 v -1 z m -10 1 h 2 v -1 z m 4 0 h 2 v -1 z m 4 0 h 2 v -1 z m -10 1 h 2 v -1 z m 4 0 h 2 v -1 z m 4 0 h 2 v -1 z m 4 0 h 2 v -1 z" />
-    <path fill="#3f3f3d" d="m 84 22 v -28 h 40 v 28 z" />
+    <path fill="#3f3f3d" d="m 84 22 v -13 l 2.5 -2.5 -2.5 -2.5 v -3 l 2 -2 l -2 -2 v -3 h 40 v 28 z" />
     <path fill="#4e4e4c" d="m 84 1 v -4 h 40 v 4 z" />
     <path fill="#585856" d="m 84 9 v -5 h 40 v 5 z" />
   </g>
